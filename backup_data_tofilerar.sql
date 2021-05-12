@@ -6,7 +6,7 @@ create proc backup_data_tofilerar
    @DatabaseName varchar(max),												-- Database Backup
    @BackupPath   varchar(max),												-- Thư mục Backup dữ liệu
    @FileSize	 int,														-- Số lương size Backup
-   @intDate		 int = 15														-- Số ngày khai báo
+   @intDate		 int = 15													-- Số ngày khai báo
 as
 begin
 
@@ -30,13 +30,29 @@ begin
       set @SQLText= 'Backup database [' + @DatabaseName + '] to disk ='''+@Bkpath + '\' + @DatabaseName + '.bak'' with compression,copy_only'
       set @CompressionCommand='"C:\Program Files\WinRAR\rar.exe" a -v'+Convert(varchar,@FileSize)+'M ' + @Bkpath + '\' + @DatabaseName +'.rar '+ @Bkpath + '\'+@DatabaseName + '.bak'
    end
-   exec xp_cmdshell @cmdpath
-   exec sp_executesql @SQLText
-   exec xp_cmdshell @CompressionCommand
-   exec xp_cmdshell @cmdrmpath, no_output
+
+	BEGIN TRY
+	   exec xp_cmdshell @cmdpath
+	   exec sp_executesql @SQLText
+	   exec xp_cmdshell @CompressionCommand
+	   exec xp_cmdshell @cmdrmpath, no_output
+
+		exec msdb.dbo.sp_send_dbmail
+			 @profile_name = 'profie.sendemail',
+			 @recipients = 'ttphongletter@gmail.com',
+			 @body = 'success',
+			 @subject = 'HVNET - Notification Backup Database Success';
+	END TRY
+	BEGIN CATCH
+		exec msdb.dbo.sp_send_dbmail
+			 @profile_name = 'profie.sendemail',						-- Thông tin tài khoản và máy chủ đã cài dặt
+			 @recipients = 'ttphongletter@gmail.com',					-- CC email, nhập nhiều email cách nhau bằng dấu ','
+			 @body = ERROR_MESSAGE,										-- Nội dung lỗi
+			 @subject = 'HVNET - Notification Backup Database Failed';	-- Tiêu đề email
+	END CATCH;
 end
 
----- To allow advanced options to be changed.  
+---- To allow advanced options to be changed.							-- Cấu hình xp_cmdshell
 --EXECUTE sp_configure 'show advanced options', 1;  
 --GO  
 ---- To update the currently configured value for advanced options.  
@@ -49,4 +65,4 @@ end
 --RECONFIGURE;  
 --GO
 
---exec backup_data_tofilerar 'test','D:\Backups',1
+--exec backup_data_tofilerar 'test','D:\Backups',1						-- Lệnh chạy mẫu
