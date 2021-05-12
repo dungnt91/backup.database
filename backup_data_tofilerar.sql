@@ -36,12 +36,6 @@ begin
 	   exec sp_executesql @SQLText
 	   exec xp_cmdshell @CompressionCommand
 	   exec xp_cmdshell @cmdrmpath, no_output
-
-		exec msdb.dbo.sp_send_dbmail
-			 @profile_name = 'profie.sendemail',
-			 @recipients = 'ttphongletter@gmail.com',
-			 @body = 'success',
-			 @subject = 'HVNET - Notification Backup Database Success';
 	END TRY
 	BEGIN CATCH
 		exec msdb.dbo.sp_send_dbmail
