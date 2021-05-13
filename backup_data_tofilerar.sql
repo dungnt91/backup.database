@@ -3,9 +3,9 @@
 GO
 
 create proc backup_data_tofilerar
-   @DatabaseName varchar(max),												-- Database Backup
-   @BackupPath   varchar(max),												-- Thư mục Backup dữ liệu
-   @FileSize	 int,														-- Số lương size Backup
+   @DatabaseName varchar(max) = 'HVNET.Products',												-- Database Backup
+   @BackupPath   varchar(max) = 'I:\DungNT',												-- Thư mục Backup dữ liệu
+   @FileSize	 int = 200,														-- Số lương size Backup
    @intDate		 int = 15													-- Số ngày khai báo
 as
 begin
@@ -36,13 +36,14 @@ begin
 	   exec sp_executesql @SQLText
 	   exec xp_cmdshell @CompressionCommand
 	   exec xp_cmdshell @cmdrmpath, no_output
+	   exec delete_filebak @DatabaseName, 'I:\DungNT'
 	END TRY
 	BEGIN CATCH
 		exec msdb.dbo.sp_send_dbmail
-			 @profile_name = 'profie.sendemail',						-- Thông tin tài khoản và máy chủ đã cài dặt
-			 @recipients = 'ttphongletter@gmail.com',					-- CC email, nhập nhiều email cách nhau bằng dấu ','
+			 @profile_name = 'profile.sendemail',						-- Thông tin tài khoản và máy chủ đã cài dặt
+			 @recipients = 'ttphongletter@gmail.com,ntd.liv282@gmail.com',					-- CC email, nhập nhiều email cách nhau bằng dấu ','
 			 @body = ERROR_MESSAGE,										-- Nội dung lỗi
-			 @subject = 'HVNET - Notification Backup Database Failed';	-- Tiêu đề email
+			 @subject = @DatabaseName ;	-- Tiêu đề email
 	END CATCH;
 end
 
@@ -59,4 +60,4 @@ end
 --RECONFIGURE;  
 --GO
 
---exec backup_data_tofilerar 'test','D:\Backups',1						-- Lệnh chạy mẫu
+--exec backup_data_tofilerar 'Tracomeco','I:\DungNT',10						-- Lệnh chạy mẫu
