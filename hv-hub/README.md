@@ -2,7 +2,7 @@
 
 Đồng bộ dữ liệu **Amazon SP-API → Cloudflare D1 → Pancake POS**, kèm miniapp vận hành chạy trên Cloudflare Workers, giao diện theo ops.hvholdings.vn.
 
-**Trạng thái:** thiết kế v0.2, chưa có code. Code sẽ nằm ở repo riêng `dungnt91/hv-hub`.
+**Trạng thái:** thiết kế v0.3, chưa có code. Code sẽ nằm ở repo riêng `dungnt91/hv-hub`.
 
 | Tài liệu | Nội dung |
 |---|---|

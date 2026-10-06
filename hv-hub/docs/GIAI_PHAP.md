@@ -1,8 +1,20 @@
 # HV Hub — Giải pháp đồng bộ Amazon → Cloudflare D1 → Pancake POS
 
-> Phiên bản **v0.2** (chốt thiết kế trước khi code) · Ngày 06/10/2026
+> Phiên bản **v0.3** (chốt thiết kế trước khi code) · Ngày 06/10/2026
 > Tên dự án: **hv-hub**. Mọi tài nguyên (repo, Worker, D1, R2, Queue, secret, domain) đều đặt tên bắt đầu bằng `hv-hub`.
 > Hệ thống **mới hoàn toàn**, không đọc/ghi DB SQL Server và không gọi job .NET/Hangfire cũ. Hai hệ thống chạy song song được.
+
+**Đã chốt với anh (v0.3)**
+
+| # | Nội dung | Quyết định |
+|---|---|---|
+| 1 | Repo GitHub | Anh tạo `dungnt91/hv-hub` |
+| 2 | Cloudflare | Anh chuẩn bị theo [CHUAN_BI.md](CHUAN_BI.md) mục C |
+| 3 | Kết nối Amazon | Cấu hình theo cùng bộ trường như `Amazon_Configs` hiện tại: **ShopName, ClientId, ClientSecret, MarketplaceIds** + **RefreshToken** (bắt buộc, giải thích ở 2.2). Gọi API bản mới nhất (mục 3.2). |
+| 4 | Kết nối Pancake | Có màn hình để anh tự cấu hình (mục 5.4) |
+| 5.1 | Dữ liệu Amazon | **Bắt buộc: sản phẩm + đơn hàng.** Các dữ liệu khác em liệt kê kèm lợi ích để anh chọn (mục 3.2) |
+| 5.2 | Khách / địa chỉ trên Pancake | Pancake **đã có sẵn** khách + địa chỉ; chỉ cần cấu hình ánh xạ. **Không lấy PII từ Amazon** (đã bị ẩn), không cần role PII |
+| 5.3 | Trạng thái Amazon → Pancake | **Bắt buộc có bước cấu hình ánh xạ trạng thái** trên miniapp (mục 5.4) |
 
 **Thay đổi so với v0.1**
 
@@ -22,9 +34,9 @@
 
 | # | Yêu cầu | Giải pháp |
 |---|---|---|
-| 1 | Token như hiện tại, cấu hình được, tự refresh | LWA `refresh_token` cho từng shop, nhập trên miniapp, lưu mã hoá. Access token cache trong D1 và tự refresh khi còn dưới 5 phút. Cron dự phòng 30 phút. Không cần AWS SigV4/AccessKey/RoleArn. Danh sách cần anh cấp: [CHUAN_BI.md](CHUAN_BI.md) mục A. |
+| 1 | Token như hiện tại, cấu hình được, tự refresh | Mỗi shop nhập ShopName, ClientId, ClientSecret, RefreshToken, MarketplaceIds trên miniapp (lưu mã hoá). Access token cache trong D1 và tự refresh khi còn dưới 5 phút. Cron dự phòng 30 phút. Không cần AWS SigV4/AccessKey/RoleArn. Danh sách cần anh cấp: [CHUAN_BI.md](CHUAN_BI.md) mục A. |
 | 2 | Sync **tất cả** đơn Amazon về D1 | Incremental 5 phút theo `lastUpdatedAfter` + backfill lịch sử chạy tiếp được + (giai đoạn sau) notification `ORDER_CHANGE`. |
-| 3 | Đẩy D1 → Pancake qua API | Outbox + Cloudflare Queue, retry, DLQ, chống tạo trùng bằng `custom_id = AmazonOrderId`. Thông tin cần: [CHUAN_BI.md](CHUAN_BI.md) mục B. |
+| 3 | Đẩy D1 → Pancake qua API | Màn hình cấu hình 4 bước (kết nối, tuyến đơn, khách/địa chỉ có sẵn, ánh xạ trạng thái). Outbox + Cloudflare Queue, retry, DLQ, chống tạo trùng bằng `custom_id = AmazonOrderId`. Thông tin cần: [CHUAN_BI.md](CHUAN_BI.md) mục B. |
 | 4 | Miniapp trên Cloudflare | 1 Worker có static assets (cách ops đang chạy, thay cho Pages). Domain đề xuất `hub.hvholdings.vn`. |
 | 5 | API mới của Amazon | Orders API **v2026-01-01** (`searchOrders`, `getOrder` + `includedData`). Các API khác dùng bản mới nhất (mục 3.1). |
 | 6 | Nhật ký mọi thao tác | `audit_log` + `job_run` + `api_call_log` + lịch sử đơn + payload thô ở R2, liên kết bằng `correlation_id`. |
@@ -93,13 +105,32 @@ flowchart LR
 - **Client secret LWA có hạn** và phải xoay vòng định kỳ: lưu `secret_expires_at`, cảnh báo trước 14 ngày; màn hình cấu hình cho thay secret không cần deploy.
 - **Thêm shop mới:** giai đoạn 1 nhập `refresh_token` có sẵn (lấy bằng *Authorize app* trong Seller Central như hiện tại). Giai đoạn sau có thể làm luồng OAuth "Kết nối Amazon" (Website authorization workflow) ngay trên miniapp nếu anh cần cho nhiều shop.
 
-### 2.2 Màn hình "Kết nối Amazon"
-| Ô | Ghi chú |
-|---|---|
-| Ứng dụng SP-API (LWA app) | `client_id`, `client_secret` (ẩn, chỉ hiện 4 ký tự cuối), ngày hết hạn secret. 1 app dùng cho nhiều shop. |
-| Shop | Tên, Seller ID, region (`na`/`eu`/`fe`), marketplace (chọn nhiều), `refresh_token`, bật/tắt từng loại dữ liệu sync, lịch sync. |
-| Nút **Test kết nối** | Refresh token → gọi `searchOrders` 1 bản ghi → báo kết quả + `x-amzn-RequestId`. |
-| Trạng thái token | Còn hạn đến, lần refresh cuối, lỗi gần nhất. |
+### 2.2 Màn hình "Cấu hình → Kết nối Amazon"
+Mỗi shop là 1 dòng cấu hình, cùng bộ trường như bảng `Amazon_Configs` hiện tại:
+
+| Ô | Bắt buộc | Ghi chú |
+|---|---|---|
+| **ShopName** | ✔ | Tên hiển thị trên miniapp |
+| **ClientId** | ✔ | LWA client id của app SP-API (nhiều shop dùng chung 1 app thì nhập lại cùng giá trị) |
+| **ClientSecret** | ✔ | Ẩn sau khi lưu, chỉ hiện 4 ký tự cuối; có ô "Hết hạn ngày" để cảnh báo xoay vòng |
+| **RefreshToken** | ✔ | **Bắt buộc.** ClientId/ClientSecret chỉ xác định *app*; RefreshToken là quyền seller cấp cho app để đọc dữ liệu *của shop*. Không có thì Amazon không trả đơn/sản phẩm. Lấy từ `Amazon_Configs.RefreshToken` hiện tại. |
+| **MarketplaceIds** | ✔ | Chọn nhiều, hiện kèm tên nước (VD `ATVPDKIKX0DER` · Hoa Kỳ). **Region tự suy ra** từ marketplace (bảng dưới), anh không phải nhập. Các marketplace của 1 shop phải cùng region. |
+| Seller ID | | Tuỳ chọn, chỉ cần khi làm notification realtime |
+| Dữ liệu sync | | Bật/tắt từng nhóm (đơn hàng, sản phẩm, …) và lịch chạy |
+
+| Region | Endpoint | Marketplace thường dùng |
+|---|---|---|
+| `na` | `sellingpartnerapi-na.amazon.com` | US `ATVPDKIKX0DER` · CA `A2EUQ1WTGCTBG2` · MX `A1AM78C64UM0Y8` · BR `A2Q3Y263D00KWC` |
+| `eu` | `sellingpartnerapi-eu.amazon.com` | UK `A1F83G8C2ARO7P` · DE `A1PA6795UKMFR9` · FR `A13V1IB3VIYZZH` · IT `APJ6JRA9NG5V4` · ES `A1RKKUPIHCS9HS` · NL `A1805IZSGTT6HS` · SE `A2NODRKZP88ZB9` · PL `A1C3SOZRARQ6R3` · BE `AMEN7PMS3EDWL` · TR `A33AVAJ2PDY3EV` · AE `A2VIGQ35RCS4UG` · SA `A17E79C6D8DWNP` · IN `A21TJRUUN4KGV` |
+| `fe` | `sellingpartnerapi-fe.amazon.com` | JP `A1VC38T7YXB528` · AU `A39IBJ37TRP1C6` · SG `A19VAU5U5O7RUS` |
+
+**Nút "Test kết nối"** (bắt buộc bấm trước khi bật sync):
+1. Đổi RefreshToken lấy access token → sai ClientId/ClientSecret/RefreshToken thì báo rõ ô nào.
+2. Gọi Sellers API `getMarketplaceParticipations` → đối chiếu MarketplaceIds đã nhập với marketplace shop thật sự tham gia; marketplace không thuộc shop thì cảnh báo.
+3. Gọi `searchOrders` 1 bản ghi và Reports API → xác nhận app có đủ role cho đơn hàng và sản phẩm.
+4. Hiện kết quả từng bước kèm `x-amzn-RequestId`, ghi `hv_audit_log`.
+
+**Trạng thái token** hiện trên dòng shop: còn hạn đến, lần refresh cuối, lỗi gần nhất.
 
 ### 2.3 Lưu trữ an toàn (giống ops)
 - `client_secret`, `refresh_token`, `access_token`, Pancake `api_key`, Lark secret đều mã hoá **AES-256-GCM** bằng Worker secret `DATA_KEY` (32 byte base64), định dạng `v1:<iv>:<ciphertext>`. Lưu kèm `key_hint` (4 ký tự cuối).
@@ -122,16 +153,31 @@ dataset = { key, api, schedule, cursor type, fetch(window|token) → rows, upser
 
 ### 3.2 Các nhóm dữ liệu
 
-| # | Nhóm | API (bản mới nhất) | Tần suất | Giai đoạn |
-|---|---|---|---|---|
-| D1 | **Đơn hàng + item + tiền + trạng thái** | Orders **v2026-01-01**: `searchOrders` (`lastUpdatedAfter`), `getOrder`; `includedData`: `FULFILLMENT, PROCEEDS, PROMOTION, CANCELLATION` (+ `BUYER, RECIPIENT` nếu có role PII) | 5 phút + backfill | **P1** |
-| D2 | **Sản phẩm / listing** (SKU, ASIN, tên, giá, trạng thái, FBA/FBM) | Reports `GET_MERCHANT_LISTINGS_ALL_DATA`; chi tiết 1 SKU: Listings Items `2021-08-01`; ảnh/tên chuẩn: Catalog Items `2022-04-01` | 1 lần/ngày + nút làm mới | **P1** (cần cho mapping) |
-| D3 | **Tồn kho FBA** | FBA Inventory v1 `getInventorySummaries` (theo marketplace) | 1 giờ | P2 |
-| D4 | **Tài chính / phí** (phí bán, phí FBA, hoàn tiền, kỳ thanh toán) | Finances `2024-06-19` `listTransactions`; đối soát kỳ: Reports settlement | 1 lần/ngày | P2 |
-| D5 | **Hoàn hàng** | Reports `GET_FBA_FULFILLMENT_CUSTOMER_RETURNS_DATA` (FBA), `GET_FLAT_FILE_RETURNS_DATA_BY_RETURN_DATE` (FBM) | 1 lần/ngày | P2 |
-| D6 | **Realtime đơn** | Notifications `ORDER_CHANGE` qua EventBridge → `POST /hooks/amazon` | sự kiện | P4 (cần AWS) |
+Luôn gọi **bản API mới nhất** của từng nhóm (cập nhật 10/2026). Khi Amazon ra bản mới, chỉ cần sửa trong `src/amazon/datasets/*`.
 
-> Anh chọn nhóm nào cần ngay ([CHUAN_BI.md](CHUAN_BI.md) câu Q2). Mặc định em làm D1 + D2 trước vì Pancake cần đơn và mapping.
+**Bắt buộc (anh đã chốt) — làm ở P1**
+
+| # | Nhóm | API bản mới nhất | Tần suất | Dùng để |
+|---|---|---|---|---|
+| D1 | **Đơn hàng** (đơn + item + tiền + trạng thái + vận chuyển) | Orders **v2026-01-01**: `searchOrders`, `getOrder`; `includedData = FULFILLMENT, PROCEEDS, PROMOTION, CANCELLATION`. **Không** lấy `BUYER`/`RECIPIENT` (PII đã ẩn, không cần role PII) | 5 phút + backfill | Đẩy đơn lên Pancake |
+| D2 | **Sản phẩm / listing** (SKU, ASIN, FNSKU, tên, ảnh, giá, FBA/FBM, trạng thái) | Reports **2021-06-30** `GET_MERCHANT_LISTINGS_ALL_DATA` (lấy toàn bộ); Listings Items **2021-08-01** `getListingsItem` (làm mới 1 SKU); Catalog Items **2022-04-01** (tên/ảnh chuẩn theo ASIN) | 1 lần/ngày + nút làm mới | Mapping sản phẩm sang Pancake |
+
+**Em đề xuất thêm — anh chọn** (mỗi nhóm là 1 dataset bật/tắt được theo shop, không ảnh hưởng phần bắt buộc)
+
+| # | Nhóm | API bản mới nhất | Lợi ích cụ thể | Role cần thêm | Mức |
+|---|---|---|---|---|---|
+| D3 | **Hoàn hàng / hoàn tiền** | Reports `GET_FBA_FULFILLMENT_CUSTOMER_RETURNS_DATA` (FBA), `GET_FLAT_FILE_RETURNS_DATA_BY_RETURN_DATE` (FBM); sự kiện refund lấy từ Finances | Cập nhật đơn Pancake sang hoàn; biết SKU nào hoàn nhiều, lý do hoàn | Amazon Fulfillment | **Nên có** |
+| D4 | **Tồn kho FBA** | FBA Inventory **v1** `getInventorySummaries` | Biết tồn ở kho Amazon theo SKU (sẵn bán, đang nhập, giữ chỗ, hỏng); cảnh báo sắp hết hàng; đối chiếu với tồn Pancake | Amazon Fulfillment | **Nên có** (nếu bán FBA) |
+| D5 | **Tài chính / phí theo đơn** | Finances **2024-06-19** `listTransactions` | Tiền thực nhận từng đơn sau phí bán, phí FBA, khuyến mãi, hoàn → lãi thật theo đơn/SKU | Finance and Accounting | **Nên có** |
+| D6 | **Kỳ thanh toán (settlement)** | Reports `GET_V2_SETTLEMENT_REPORT_DATA_FLAT_FILE_V2` | Đối soát tiền Amazon chuyển về tài khoản theo từng kỳ | Finance and Accounting | Tuỳ chọn |
+| D7 | **Doanh số & traffic theo ASIN** | Reports `GET_SALES_AND_TRAFFIC_REPORT` | Lượt xem, tỉ lệ chuyển đổi, Buy Box % theo ngày/ASIN — báo cáo vận hành kiểu ops | Brand Analytics (cần Brand Registry) | Tuỳ chọn |
+| D8 | **Lô hàng gửi kho FBA** | Fulfillment Inbound **2024-03-20** | Theo dõi hàng đang đi vào kho Amazon | Amazon Fulfillment | Tuỳ chọn |
+| D9 | **Giá & Buy Box** | Product Pricing **2022-05-01** | Theo dõi giá cạnh tranh, mất Buy Box | Pricing | Tuỳ chọn |
+| D10 | **Realtime đơn** | Notifications `ORDER_CHANGE` qua EventBridge | Đơn về sau vài giây thay vì ≤ 5 phút | — (cần tài khoản AWS) | Tuỳ chọn, P5 |
+
+> Quảng cáo Amazon (Sponsored Products, chi phí ads) **không nằm trong SP-API** mà là Amazon Ads API riêng, cần đăng ký app và token riêng. Nếu anh cần thì làm thành giai đoạn riêng.
+>
+> Mặc định nếu anh không chọn: P1 = D1 + D2; P4 = D3 + D4 + D5.
 
 ### 3.3 Đơn hàng (D1) chi tiết
 
@@ -223,10 +269,56 @@ consumer (max_concurrency=1 / shop Pancake, ≤ 60 req/phút):
 | `unitPrice` | giá mẫu mã | chênh lệch vào `discount_each_product` / `surcharge` |
 | Khuyến mãi | `total_discount` | |
 | Phí ship + gift wrap | `shipping_fee` / `surcharge` | |
-| Khách / địa chỉ | `bill_*`, `shipping_address` | ⚠️ Pancake cần mã tỉnh/huyện/xã VN → Q5 |
+| Khách / địa chỉ | `bill_*`, `shipping_address` | Lấy từ **khách + địa chỉ có sẵn trên Pancake** theo cấu hình (mục 5.4). Không dùng dữ liệu khách từ Amazon |
 | FBA / FBM | `warehouse_id` | FBA → kho ảo "Amazon FBA", FBM → kho thật |
 | Shop / marketplace | `order_sources`, `tags` | nguồn "Amazon", thẻ `AMZ-US`… |
-| Trạng thái | `status` | Q6 |
+| Trạng thái | `status` | Theo bảng ánh xạ trạng thái anh cấu hình (mục 5.4) |
+
+### 5.4 Màn hình "Cấu hình → Pancake" (anh tự cấu hình)
+Gồm 4 bước, làm lần lượt; bước sau mở khi bước trước đã lưu.
+
+**Bước 1 — Kết nối shop Pancake**
+| Ô | Ghi chú |
+|---|---|
+| Tên, `SHOP_ID`, `api_key` | `api_key` ẩn sau khi lưu (4 ký tự cuối) |
+| Nút **Kiểm tra kết nối** | Gọi Pancake lấy tên shop, kho, nguồn đơn, thẻ, trạng thái → báo OK/lỗi |
+
+**Bước 2 — Tuyến đơn (shop/marketplace Amazon → shop Pancake)**
+| Ô | Ghi chú |
+|---|---|
+| Shop Amazon + marketplace | 1 tuyến cho từng marketplace, hoặc "mọi marketplace" |
+| Shop Pancake nhận đơn | |
+| Kho FBA, kho FBM | Chọn trong danh sách kho lấy từ Pancake |
+| Nguồn đơn, thẻ | Chọn từ Pancake; thẻ có biến `{marketplace}` (VD `AMZ-{marketplace}` → `AMZ-US`) |
+| Chế độ | Chạy thử (chỉ dựng đơn, không gửi) / Đẩy thật |
+
+**Bước 3 — Khách & địa chỉ** (dùng dữ liệu có sẵn trên Pancake, không lấy từ Amazon)
+| Ô | Ghi chú |
+|---|---|
+| Khách mặc định | Tìm và chọn khách có sẵn trên Pancake theo tên/SĐT → tự điền `bill_full_name`, `bill_phone_number` |
+| Địa chỉ giao | Chọn 1 địa chỉ có sẵn của khách đó → tự điền `shipping_address` (tên, SĐT, địa chỉ, mã tỉnh/huyện/xã) |
+| Ghi đè theo tuyến | Mỗi tuyến (marketplace) có thể chọn khách/địa chỉ khác |
+| Ghi chú đơn | Mẫu có biến: `Amazon {amazon_order_id} · {marketplace} · {fulfilled_by}` |
+
+**Bước 4 — Ánh xạ trạng thái (bắt buộc trước khi đẩy thật)**
+Bảng mỗi dòng là 1 trạng thái Amazon, tách riêng FBA và FBM:
+
+| Trạng thái Amazon | Kênh | Hành động | Trạng thái Pancake |
+|---|---|---|---|
+| `PENDING_AVAILABILITY`, `PENDING` | FBA/FBM | Không đẩy *(đề xuất)* | — |
+| `UNSHIPPED` | FBM | Tạo đơn | chọn (VD "Mới" / "Đã xác nhận") |
+| `PARTIALLY_SHIPPED` | FBM | Tạo / cập nhật | chọn |
+| `SHIPPED` | FBA | Tạo / cập nhật | chọn (VD "Đã gửi hàng") |
+| `SHIPPED` | FBM | Tạo / cập nhật | chọn |
+| `CANCELLED` | FBA/FBM | Huỷ đơn đã đẩy | chọn (VD "Đã huỷ") |
+| `UNFULFILLABLE` | FBA/FBM | Không đẩy / cảnh báo | — |
+| Hoàn hàng (nếu bật D3) | FBA/FBM | Cập nhật | chọn (VD "Đang hoàn" / "Đã hoàn") |
+
+- **Hành động** chọn 1 trong: *Không đẩy* · *Tạo đơn* · *Tạo hoặc cập nhật* · *Chỉ cập nhật nếu đã có* · *Huỷ*.
+- Danh sách trạng thái Pancake lấy từ shop thật, không gõ tay.
+- **Khi đơn Pancake đã đi xa hơn** (VD đã đóng gói/đã gửi) mà Amazon đổi trạng thái lùi hoặc huỷ: tuỳ chọn *Bỏ qua + cảnh báo* (đề xuất) hoặc *Vẫn cập nhật*. Hệ thống không bao giờ tự lùi trạng thái nếu anh không bật.
+- Chưa có ánh xạ cho 1 trạng thái → đơn đó dừng ở "Chờ cấu hình", không đẩy bừa.
+- Mỗi lần lưu cấu hình ghi `hv_audit_log` (trước/sau); đơn đã đẩy lưu snapshot cấu hình lúc đẩy.
 
 ---
 
@@ -308,16 +400,21 @@ hv_user_shop(username, shop_id)              hv_role(id, name)   hv_role_perm(ro
 hv_setting(key PK, value_json, version, updated_by, updated_at)
 
 -- Kết nối Amazon
-hv_lwa_app(id, name, client_id, client_secret_enc, key_hint, secret_expires_at, created_at, updated_at)
-hv_shop(id, name, lwa_app_id, seller_id, region, refresh_token_enc, key_hint,
-        status /*active|paused|auth_error*/, datasets_json, created_at, updated_at)
+hv_shop(id, shop_name, client_id, client_secret_enc, client_secret_hint, secret_expires_at,
+        refresh_token_enc, refresh_token_hint, region /*tự suy từ marketplace*/, seller_id,
+        status /*draft|active|paused|auth_error*/, datasets_json, last_test_at, last_test_result_json,
+        created_at, updated_at)
 hv_shop_marketplace(shop_id, marketplace_id, country, currency, active)
 hv_access_token(shop_id PK, token_enc, expires_at, lock_until, refreshed_at)
 
 -- Kết nối Pancake
 hv_pk_shop(id, name, pancake_shop_id, api_key_enc, key_hint, currency, status, created_at, updated_at)
-hv_route(shop_id, marketplace_id, pk_shop_id, wh_fba, wh_fbm, order_source_id, tags_json,
-         push_from_statuses_json, dry_run, active)   -- shop/marketplace Amazon → shop Pancake
+hv_route(id, shop_id, marketplace_id /*NULL = mọi marketplace*/, pk_shop_id, wh_fba, wh_fbm,
+         order_source_id, tags_template, note_template,
+         pk_customer_id, pk_address_id, bill_snapshot_json /*khách + địa chỉ có sẵn trên Pancake*/,
+         on_regress /*skip_alert|update*/, dry_run, active, updated_by, updated_at)
+hv_status_map(route_id, amazon_status, channel /*FBA|FBM*/, action /*none|create|upsert|update_only|cancel*/,
+              pancake_status, PRIMARY KEY(route_id, amazon_status, channel))
 hv_pk_variation(pk_shop_id, variation_id, product_id, code, barcode, name, price_minor, stock, raw_json, synced_at)
 
 -- Đồng bộ
@@ -405,15 +502,15 @@ Thư mục `hv-hub/` trong repo hiện tại chỉ chứa tài liệu thiết k�
 | P0 | Khung dự án, CI, schema + migration, secretbox, auth/vai trò, audit log, giao diện khung theo HVX | Deploy staging, đăng nhập được, có nhật ký |
 | P1 | Token + sync đơn (incremental + backfill) + listing (D2) | Số đơn D1 khớp Seller Central của 1 shop trong 7 ngày |
 | P2 | Miniapp: Tổng quan, Đơn hàng, Jobs, Nhật ký, Cấu hình | Vận hành không cần vào DB |
-| P3 | Mapping + đẩy Pancake (test trường trên shop thử → dry-run → đẩy thật) | 100 đơn test lên Pancake đúng tiền, không trùng |
-| P4 | Tồn FBA, tài chính, hoàn hàng | Theo Q2 |
+| P3 | Mapping sản phẩm + cấu hình Pancake 4 bước + đẩy đơn (test trường trên shop thử → chạy thử → đẩy thật) | 100 đơn test lên Pancake đúng tiền, không trùng |
+| P4 | Dữ liệu anh chọn thêm (mặc định D3 hoàn hàng, D4 tồn FBA, D5 tài chính) | Theo lựa chọn ở mục 3.2 |
 | P5 | Realtime notification (cần AWS), OAuth thêm shop, chuẩn bị Postgres | Theo nhu cầu |
 
 ## 12. Rủi ro và điểm phải kiểm chứng khi code
 1. Rate limit `searchOrders` v2026 thấp → đọc header thật, backfill lớn dùng Reports.
 2. Đơn `PENDING` có giá hay không trong v2026.
 3. Trường tạo đơn Pancake + cách tìm đơn theo `custom_id` (test trên shop thử trước).
-4. Địa chỉ nước ngoài vs mã hành chính VN của Pancake (Q5).
+4. Cách Pancake trả danh sách khách + địa chỉ có sẵn qua API (để chọn ở bước 3 cấu hình).
 5. Giới hạn tra cứu lịch sử xa nhất của Orders API.
 6. Thời gian CPU/giới hạn subrequest của Worker khi parse report lớn → chia lô qua queue.
 
