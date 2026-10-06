@@ -1,0 +1,925 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HV Hub — Mockup v1</title>
+<style>
+/* ============================================================
+   HV Hub — mockup v1. Token màu lấy nguyên từ ops.hvholdings.vn
+   (hv-x-operations/public/styles.css + design-system/hvx-theme.css).
+   Khối .devnote theo chuẩn skill hvh-admin-mockup.
+   ============================================================ */
+:root{
+  color-scheme:light;
+  --page:#f9f9f7;--surface:#fcfcfb;--surface-2:#f1f0ec;--text:#0b0b0b;--text-2:#52514e;--muted:#7a7873;
+  --grid:#e1e0d9;--axis:#c3c2b7;--border:rgba(11,11,11,.10);--wash:rgba(11,11,11,.045);
+  --accent:#2a78d6;--accent-ink:#fff;--sel:#eaf2fc;
+  --good:#006300;--good-dot:#1baf7a;--bad:#b42323;--warn:#eda100;
+  --warn-bg:#fff6e0;--warn-ink:#6b4a00;--err-bg:#fdeceb;--err-ink:#8a1c1c;
+  --note-bg:#fffbeb;--note-line:#e3c55d;--note-ink:#7a5e10;
+  --radius:8px;
+  --font:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:ui-monospace,"SF Mono",Consolas,"Liberation Mono",monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  color-scheme:dark;--page:#0d0d0d;--surface:#1a1a19;--surface-2:#242423;--text:#fff;--text-2:#c3c2b7;--muted:#9a988f;
+  --grid:#2c2c2a;--axis:#45453f;--border:rgba(255,255,255,.10);--wash:rgba(255,255,255,.06);--accent:#3987e5;--sel:#1d2b3d;
+  --good:#2fbf2f;--good-dot:#199e70;--bad:#f07a7a;--warn:#c98500;--warn-bg:#3a2e10;--warn-ink:#f5d58a;--err-bg:#3a1616;--err-ink:#f5b0b0;
+  --note-bg:#2e2710;--note-line:#8a7428;--note-ink:#f0d98a;}}
+:root[data-theme="dark"]{
+  color-scheme:dark;--page:#0d0d0d;--surface:#1a1a19;--surface-2:#242423;--text:#fff;--text-2:#c3c2b7;--muted:#9a988f;
+  --grid:#2c2c2a;--axis:#45453f;--border:rgba(255,255,255,.10);--wash:rgba(255,255,255,.06);--accent:#3987e5;--sel:#1d2b3d;
+  --good:#2fbf2f;--good-dot:#199e70;--bad:#f07a7a;--warn:#c98500;--warn-bg:#3a2e10;--warn-ink:#f5d58a;--err-bg:#3a1616;--err-ink:#f5b0b0;
+  --note-bg:#2e2710;--note-line:#8a7428;--note-ink:#f0d98a;}
+
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--page);color:var(--text);font:14px/1.45 var(--font);font-variant-numeric:tabular-nums}
+button,input,select,textarea{font:inherit;color:inherit}
+h2,h3{margin:0;font-weight:600}h2{font-size:18px}h3{font-size:14px}
+code,.mono{font-family:var(--mono);font-size:12.5px}
+.muted{color:var(--muted);font-size:12.5px}
+.sub{display:block;color:var(--muted);font-size:11.5px;margin-top:1px}
+[hidden]{display:none!important}
+a{color:var(--accent);text-decoration:none;cursor:pointer}a:hover{text-decoration:underline}
+
+/* ---- thanh trên (giống ops) ---- */
+.topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:10px 24px;background:var(--surface);border-bottom:1px solid var(--border)}
+.brand{font-weight:700;font-size:15px;white-space:nowrap}.brand span{font-weight:400;color:var(--muted);margin-left:6px}
+.tabs{display:flex;gap:4px;flex-wrap:wrap}
+.tabs button{border:0;background:transparent;padding:6px 10px;border-radius:6px;cursor:pointer;color:var(--text-2);white-space:nowrap}
+.tabs button:hover{background:var(--wash)}
+.tabs button[aria-selected="true"]{background:var(--sel);color:var(--text);font-weight:600}
+.tabs .badge{display:inline-block;min-width:18px;padding:0 5px;margin-left:5px;border-radius:99px;background:var(--err-bg);color:var(--err-ink);font-size:11px;font-weight:600;text-align:center}
+.spacer{flex:1}
+.userbox{display:flex;align-items:center;gap:12px;font-size:12.5px;color:var(--text-2);white-space:nowrap}
+.role{border:1px solid currentColor;color:var(--accent);border-radius:99px;padding:0 7px;font-size:10.5px}
+.devtoggle{display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none}
+
+main{padding:16px 24px 64px;max-width:1600px;margin:0 auto}
+.page-q{border-left:3px solid var(--accent);background:var(--surface);border-radius:0 var(--radius) var(--radius) 0;padding:10px 14px;margin-bottom:14px;border-top:1px solid var(--border);border-right:1px solid var(--border);border-bottom:1px solid var(--border)}
+.page-q b{font-size:15px;font-weight:600}.page-q .muted{display:block;margin-top:2px}
+
+/* ---- bộ lọc ---- */
+.filters{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.field{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--text-2)}
+.field input,.field select,.field textarea{min-height:32px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface)}
+.field textarea{font-family:var(--mono);font-size:12.5px;resize:vertical}
+.field input.mono{font-family:var(--mono)}
+.field .hint{color:var(--muted);font-size:11.5px}
+.seg{display:inline-flex;border:1px solid var(--border);border-radius:6px;overflow:hidden;background:var(--surface)}
+.seg button{border:0;background:transparent;padding:6px 12px;cursor:pointer;min-height:32px;white-space:nowrap}
+.seg button+button{border-left:1px solid var(--border)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);font-weight:600}
+.seg .n{opacity:.75;margin-left:4px;font-size:12px}
+.btn{min-height:32px;padding:5px 14px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;white-space:nowrap}
+.btn:hover{background:var(--surface-2)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.danger{color:var(--bad)}
+.btn.small{min-height:26px;padding:2px 9px;font-size:12.5px}
+.btn:disabled{opacity:.5;cursor:default}
+.stamp{font-size:12px;color:var(--muted);align-self:center}
+
+/* ---- thẻ, KPI ---- */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:14px}
+.card-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--border)}
+.card-body{padding:14px 16px}
+.card-body.flush{padding:0}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:14px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;min-width:0}
+.kpi-label{font-size:12.5px;color:var(--text-2)}
+.kpi-value{font-size:24px;font-weight:600;margin:2px 0;letter-spacing:-.01em}
+.kpi-sub{font-size:12px;color:var(--muted)}
+.kpi.bad .kpi-value{color:var(--bad)}.kpi.warn .kpi-value{color:var(--warn-ink)}
+
+/* ---- bảng số liệu (giống .hvx-table) ---- */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{font-size:12px;font-weight:500;color:var(--text-2);background:var(--surface-2);text-align:right;padding:7px 10px;border-bottom:1px solid var(--grid);vertical-align:bottom}
+th.l,td.l{text-align:left}
+td{padding:7px 10px;border-bottom:1px solid var(--grid);text-align:right;vertical-align:top}
+tbody tr:hover{background:var(--wash)}
+tbody tr.click{cursor:pointer}
+tbody tr.sel{background:var(--sel)}
+tfoot td{font-weight:600;border-top:1px solid var(--axis)}
+td.c,th.c{text-align:center}
+td .zero{color:transparent}
+td.mono,td .mono{white-space:nowrap}
+
+/* ---- nhãn tình trạng (chấm + chữ, giống StatusChip) ---- */
+.st{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;font-size:12.5px}
+.st::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--axis);flex:none}
+.st.ok::before{background:var(--good-dot)}.st.warn::before{background:var(--warn)}.st.bad::before{background:var(--bad)}.st.info::before{background:var(--accent)}
+.st.bad{color:var(--bad)}
+.tag{display:inline-block;border:1px solid var(--border);border-radius:99px;padding:0 8px;font-size:11.5px;color:var(--text-2);background:var(--surface-2);white-space:nowrap}
+.tag.on{background:var(--sel);border-color:var(--accent);color:var(--text)}
+
+.alert{padding:9px 12px;border-radius:6px;margin-bottom:10px;font-size:13px;display:flex;gap:10px;align-items:flex-start}
+.alert.warn{background:var(--warn-bg);color:var(--warn-ink)}
+.alert.err{background:var(--err-bg);color:var(--err-ink)}
+.alert.ok{background:var(--sel);color:var(--text)}
+.alert .spacer{flex:1}
+
+/* ---- stepper ---- */
+.stepper{display:flex;align-items:center;flex-wrap:wrap;gap:6px 0;margin:4px 0 16px}
+.step{display:flex;align-items:center;gap:8px;cursor:pointer}
+.step .dot{width:26px;height:26px;border-radius:50%;border:2px solid var(--grid);background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--muted)}
+.step .lbl{font-size:13px;color:var(--muted)}
+.step.done .dot{background:var(--accent);border-color:var(--accent);color:#fff}
+.step.done .lbl{color:var(--text)}
+.step.current .dot{border-color:var(--accent);color:var(--accent)}
+.step.current .lbl{color:var(--accent);font-weight:600}
+.step-line{flex:0 0 36px;height:2px;background:var(--grid);margin:0 10px}
+.step-line.done{background:var(--accent)}
+
+/* ---- lưới form ---- */
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 16px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 16px}
+.span2{grid-column:span 2}.span3{grid-column:1/-1}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--border);border-radius:99px;padding:3px 10px;font-size:12.5px;background:var(--surface);cursor:pointer}
+.chip.on{background:var(--sel);border-color:var(--accent)}
+.split{display:grid;grid-template-columns:minmax(0,1fr) 440px;gap:14px;align-items:start}
+.checks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 16px;font-size:13px}
+.checks label{display:flex;gap:6px;align-items:flex-start}
+.progress{height:8px;background:var(--surface-2);border-radius:99px;overflow:hidden;margin:6px 0 4px}
+.progress>div{height:100%;background:var(--accent)}
+.testlog{font-size:13px;margin:0;padding:0;list-style:none}
+.testlog li{padding:5px 0;border-bottom:1px solid var(--grid);display:flex;gap:10px}
+.testlog li:last-child{border-bottom:0}
+.testlog .mono{color:var(--muted);margin-left:auto;font-size:11.5px}
+pre.json{margin:0;max-height:260px;overflow:auto;background:var(--surface-2);border-radius:6px;padding:10px;font:12px/1.5 var(--mono)}
+.timeline{list-style:none;margin:0;padding:0;font-size:13px}
+.timeline li{display:grid;grid-template-columns:96px 1fr;gap:10px;padding:5px 0;border-bottom:1px solid var(--grid)}
+.timeline li:last-child{border-bottom:0}
+.kv{display:grid;grid-template-columns:130px 1fr;gap:4px 10px;font-size:13px}
+.kv dt{color:var(--text-2)}.kv dd{margin:0}
+.subtabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:14px;flex-wrap:wrap}
+.subtabs button{border:0;background:transparent;padding:8px 12px;cursor:pointer;color:var(--text-2);border-bottom:2px solid transparent;margin-bottom:-1px}
+.subtabs button[aria-selected="true"]{color:var(--text);font-weight:600;border-bottom-color:var(--accent)}
+
+/* ---- modal ---- */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:50;display:flex;align-items:flex-start;justify-content:center;padding:6vh 16px;overflow:auto}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);width:min(760px,100%);box-shadow:0 10px 40px rgba(0,0,0,.2)}
+.modal .card-head{position:sticky;top:0;background:var(--surface);border-radius:var(--radius) var(--radius) 0 0}
+.modal-foot{display:flex;gap:8px;justify-content:flex-end;padding:12px 16px;border-top:1px solid var(--border)}
+
+/* ---- SIGNATURE: chú thích cho dev ---- */
+.devnote{display:none;background:var(--note-bg);border:1px dashed var(--note-line);border-radius:6px;padding:9px 12px;font-size:12.5px;color:var(--note-ink);margin:8px 0 12px}
+.devnote b{font-weight:700}
+.devnote code{background:transparent;padding:0;color:inherit}
+body.show-dev .devnote{display:block}
+.card-body .devnote,.modal .devnote{margin:10px 0 0}
+.card-body.flush .devnote{margin:10px 16px 12px}
+
+@media (max-width:1100px){.split{grid-template-columns:1fr}}
+@media (max-width:760px){
+  .topbar{padding:8px 16px;gap:8px}main{padding:12px 16px 48px}
+  .grid2,.grid3,.checks{grid-template-columns:1fr}.span2{grid-column:auto}
+  .userbox .who{display:none}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">HV Hub<span id="viewName" hidden></span></div>
+  <nav class="tabs" role="tablist" id="tabs">
+    <button role="tab" data-tab="overview">Tổng quan</button>
+    <button role="tab" data-tab="orders">Đơn hàng</button>
+    <button role="tab" data-tab="mapping">Sản phẩm &amp; Mapping<span class="badge">37</span></button>
+    <button role="tab" data-tab="amzdata">Dữ liệu Amazon</button>
+    <button role="tab" data-tab="queue">Hàng đợi đẩy<span class="badge">9</span></button>
+    <button role="tab" data-tab="jobs">Jobs</button>
+    <button role="tab" data-tab="logs">Nhật ký</button>
+    <button role="tab" data-tab="config">Cấu hình</button>
+  </nav>
+  <span class="spacer"></span>
+  <div class="userbox">
+    <label class="devtoggle"><input type="checkbox" id="devToggle"> Chú thích cho dev</label>
+    <button class="btn small" id="themeBtn" title="Đổi sáng / tối">Sáng/tối</button>
+    <span class="who">DungNT <span class="role">Quản trị</span></span>
+    <a onclick="say('Đăng xuất: xoá cookie hv_hub_sid, ghi hv_audit_log action=user.logout')">Đăng xuất</a>
+  </div>
+</header>
+<main>
+<div class="devnote"><b>Dev — khung chung:</b> 1 Worker <code>hv-hub</code> (static assets + <code>/api/*</code>). Đăng nhập giống ops: PBKDF2-SHA256 100k vòng, cookie <code>hv_hub_sid</code> ký HMAC bằng secret <code>SESSION_SECRET</code>, 7 ngày. Tab hiện theo quyền của vai trò (<code>hv_role_perm</code>); server kiểm lại từng API (403). Người dùng bị giới hạn shop (<code>hv_user_shop</code>) chỉ thấy dữ liệu shop đó ở MỌI màn. Badge số trên tab: <code>GET /api/overview/counters</code> (cache 60 giây). Mọi request mang header <code>x-correlation-id</code> (sinh ở Worker nếu thiếu), ghi vào <code>hv_audit_log</code>. Giờ hiển thị: Asia/Ho_Chi_Minh; DB lưu UTC ISO-8601.</div>
+
+<!-- =============================== TỔNG QUAN =============================== -->
+<section id="tab-overview" hidden>
+  <div class="page-q"><b>Hôm nay dữ liệu Amazon → Pancake có chạy đúng không?</b><span class="muted">Xanh = đang chạy bình thường · vàng = cần để ý · đỏ = đang dừng / cần xử lý ngay · xám = chưa bật</span></div>
+  <div class="alert err"><span>Shop <b>HV Canada</b>: refresh token bị Amazon từ chối (<code>invalid_grant</code>) lúc 08:42. Sync shop này đang dừng.</span><span class="spacer"></span><button class="btn small" onclick="go('config','amazon');openShop('ca')">Cập nhật token</button></div>
+  <div class="alert warn"><span>ClientSecret của app <b>HV SP-API</b> hết hạn sau <b>11 ngày</b> (17/10/2026). Cần xoay vòng trong Developer Central rồi dán secret mới.</span><span class="spacer"></span><button class="btn small" onclick="go('config','amazon')">Mở cấu hình</button></div>
+  <div class="devnote"><b>Dev:</b> Banner lấy từ <code>hv_shop.status='auth_error'</code> và <code>hv_shop.secret_expires_at - now &lt; 14 ngày</code>. Cùng điều kiện gửi Lark 1 lần / 24 giờ / shop (khoá chống gửi lặp lưu trong <code>hv_setting</code>).</div>
+
+  <div class="filters">
+    <label class="field">Shop <select><option>Tất cả shop (3)</option><option>HV US</option><option>HV Canada</option><option>HV Mexico</option></select></label>
+    <div class="field">Khoảng<div class="seg" data-seg><button aria-pressed="true">Hôm nay</button><button>7 ngày</button><button>30 ngày</button></div></div>
+    <span class="spacer"></span><span class="stamp">Cập nhật 10:15 · tự làm mới mỗi 60 giây</span>
+    <button class="btn" onclick="say('Gọi lại /api/overview, bỏ qua cache')">Làm mới</button>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi"><div class="kpi-label">Đơn Amazon mới</div><div class="kpi-value">486</div><div class="kpi-sub">▲ 6,1% so với cùng giờ hôm qua</div></div>
+    <div class="kpi"><div class="kpi-label">Đơn cập nhật trạng thái</div><div class="kpi-value">1.312</div><div class="kpi-sub">Shipped 1.024 · Huỷ 17</div></div>
+    <div class="kpi"><div class="kpi-label">Đã đẩy lên Pancake</div><div class="kpi-value">451</div><div class="kpi-sub">Tạo 438 · cập nhật 13</div></div>
+    <div class="kpi warn"><div class="kpi-label">Chờ map sản phẩm</div><div class="kpi-value">26</div><div class="kpi-sub">đơn · do 37 SKU chưa map</div></div>
+    <div class="kpi bad"><div class="kpi-label">Lỗi đẩy</div><div class="kpi-value">9</div><div class="kpi-sub">Lỗi dữ liệu 6 · DLQ 3</div></div>
+  </div>
+  <div class="devnote"><b>Dev:</b> Đơn mới = <code>hv_amz_order.first_seen_at</code> trong khoảng; cập nhật = số dòng <code>hv_amz_order_event</code> distinct đơn (field = fulfillment_status); đã đẩy = <code>hv_pancake_order_link.pushed_at</code>; chờ map = <code>state='WAITING_MAP'</code>; lỗi = <code>state IN ('FAILED_DATA','FAILED')</code> + số message DLQ. So cùng giờ hôm qua để công bằng (giống "kỳ đang chạy" của ops).</div>
+
+  <div class="card">
+    <div class="card-head"><h3>Tình trạng đồng bộ theo shop</h3><span class="muted">lần chạy gần nhất của từng loại dữ liệu</span></div>
+    <div class="card-body flush table-wrap">
+      <table>
+        <thead><tr><th class="l">Shop · marketplace</th><th class="l">Token</th><th class="l">Đơn hàng<span class="sub">5 phút</span></th><th class="l">Sản phẩm<span class="sub">1 lần/ngày</span></th><th class="l">Hoàn hàng</th><th class="l">Tồn FBA</th><th class="l">Tài chính</th><th>Đơn hôm nay</th><th>Chờ đẩy</th><th>Lỗi</th></tr></thead>
+        <tbody>
+          <tr><td class="l"><b>HV US</b><span class="sub">US · ATVPDKIKX0DER</span></td><td class="l"><span class="st ok">Còn 41 phút</span></td><td class="l"><span class="st ok">10:13</span><span class="sub">+38 mới · 112 cập nhật</span></td><td class="l"><span class="st ok">06:05</span><span class="sub">1.284 SKU</span></td><td class="l"><span class="st ok">06:20</span></td><td class="l"><span class="st ok">10:00</span></td><td class="l"><span class="st ok">06:40</span></td><td>402</td><td>21</td><td>7</td></tr>
+          <tr><td class="l"><b>HV Canada</b><span class="sub">CA · A2EUQ1WTGCTBG2</span></td><td class="l"><span class="st bad">invalid_grant</span></td><td class="l"><span class="st bad">dừng từ 08:42</span></td><td class="l"><span class="st bad">dừng</span></td><td class="l"><span class="st">chưa bật</span></td><td class="l"><span class="st">chưa bật</span></td><td class="l"><span class="st">chưa bật</span></td><td>51</td><td>3</td><td>2</td></tr>
+          <tr><td class="l"><b>HV Mexico</b><span class="sub">MX · A1AM78C64UM0Y8</span></td><td class="l"><span class="st ok">Còn 18 phút</span></td><td class="l"><span class="st warn">10:01</span><span class="sub">429 · chậm 2 lượt</span></td><td class="l"><span class="st ok">06:07</span><span class="sub">212 SKU</span></td><td class="l"><span class="st">chưa bật</span></td><td class="l"><span class="st ok">10:00</span></td><td class="l"><span class="st">chưa bật</span></td><td>33</td><td>2</td><td></td></tr>
+        </tbody>
+        <tfoot><tr><td class="l">Tổng</td><td></td><td></td><td></td><td></td><td></td><td></td><td>486</td><td>26</td><td>9</td></tr></tfoot>
+      </table>
+      <div class="devnote"><b>Dev:</b> Mỗi ô dataset = <code>hv_sync_cursor</code> (mode=incremental) join <code>hv_job_run</code> mới nhất theo (shop_id, dataset). Vàng khi lần gần nhất gặp 429 hoặc trễ &gt; 2 chu kỳ; đỏ khi <code>status='error'</code> hoặc shop <code>auth_error</code>; "chưa bật" khi dataset không có trong <code>hv_shop.datasets_json</code>. Bấm 1 dòng → mở tab Jobs lọc theo shop. Số 0 để trống (chuẩn ops).</div>
+    </div>
+  </div>
+</section>
+
+<!-- =============================== ĐƠN HÀNG =============================== -->
+<section id="tab-orders" hidden>
+  <div class="page-q"><b>Đơn Amazon nào đã lên Pancake, đơn nào chưa và vì sao?</b><span class="muted">Bấm 1 dòng để xem chi tiết: sản phẩm, tiền, lịch sử trạng thái, payload gửi Pancake.</span></div>
+  <div class="filters">
+    <label class="field">Shop <select><option>Tất cả shop</option><option>HV US</option><option>HV Canada</option><option>HV Mexico</option></select></label>
+    <label class="field">Trạng thái Amazon <select><option>Tất cả</option><option>PENDING</option><option>UNSHIPPED</option><option>PARTIALLY_SHIPPED</option><option>SHIPPED</option><option>CANCELLED</option></select></label>
+    <div class="field">Kênh<div class="seg" data-seg><button aria-pressed="true">Tất cả</button><button>FBA</button><button>FBM</button></div></div>
+    <div class="field">Đẩy Pancake<div class="seg" data-seg id="pushSeg"><button aria-pressed="true" data-v="">Tất cả</button><button data-v="PUSHED">Đã đẩy</button><button data-v="WAITING_MAP">Chờ map</button><button data-v="FAILED">Lỗi</button><button data-v="SKIP">Không đẩy</button></div></div>
+    <label class="field">Ngày tạo <input type="text" value="30/09/2026 – 06/10/2026" style="width:190px"></label>
+    <label class="field">Tìm <input type="search" placeholder="Mã đơn Amazon / SKU / mã đơn Pancake" style="width:250px"></label>
+    <span class="spacer"></span>
+    <button class="btn" onclick="say('Xuất Excel danh sách đang lọc (tối đa 50.000 dòng), ghi hv_audit_log action=order.export')">Xuất Excel</button>
+  </div>
+  <div class="devnote"><b>Dev:</b> <code>GET /api/orders?shop=&amp;status=&amp;channel=&amp;push=&amp;from=&amp;to=&amp;q=&amp;cursor=</code>. Phân trang keyset theo <code>(last_updated_time, amazon_order_id)</code>, 50 dòng/trang — không dùng OFFSET (để chuyển Postgres không đổi). Tìm theo SKU join <code>hv_amz_order_item.seller_sku</code>. Bộ lọc nhớ trong URL query.</div>
+
+  <div class="split">
+    <div class="card">
+      <div class="card-body flush table-wrap">
+        <table id="orderTable">
+          <thead><tr><th class="l">Mã đơn Amazon</th><th class="l">Shop</th><th class="l">Tạo lúc</th><th class="l">Trạng thái Amazon</th><th class="c">Kênh</th><th>SL</th><th>Tổng (gốc)</th><th class="l">Pancake</th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <div style="display:flex;gap:8px;align-items:center;padding:10px 16px"><span class="muted">Hiện 12 / 3.418 đơn</span><span class="spacer"></span><button class="btn small" onclick="say('Tải 50 đơn tiếp theo (keyset cursor)')">Tải thêm</button></div>
+      </div>
+    </div>
+
+    <div class="card" id="orderDetail">
+      <div class="card-head"><h3 id="odTitle">113-4829175-2038641</h3><span id="odState"></span><span class="spacer"></span>
+        <button class="btn small" onclick="say('getOrder (Orders v2026-01-01) cho đơn này → upsert hv_amz_order + item, ghi hv_amz_order_event nếu đổi. Rate 0,5 rps / burst 30.')">Sync lại</button>
+        <button class="btn small primary" onclick="say('Ghi hv_push_outbox reason=update (bỏ qua so payload_hash) → queue hv-hub-pancake-push. Ghi audit push.retry.')">Đẩy lại</button>
+        <button class="btn small" onclick="skipOrder()">Bỏ qua</button>
+      </div>
+      <div class="card-body">
+        <dl class="kv" id="odKv"></dl>
+        <h3 style="margin:14px 0 6px">Sản phẩm</h3>
+        <div class="table-wrap"><table id="odItems"><thead><tr><th class="l">SKU Amazon</th><th class="l">→ Mẫu mã Pancake</th><th>SL</th><th>Đơn giá</th><th>Thành tiền</th></tr></thead><tbody></tbody></table></div>
+        <h3 style="margin:14px 0 6px">Tiền (theo Amazon, chưa quy đổi)</h3>
+        <dl class="kv" id="odMoney"></dl>
+        <h3 style="margin:14px 0 6px">Lịch sử</h3>
+        <ul class="timeline" id="odTimeline"></ul>
+        <div style="display:flex;gap:8px;margin:14px 0 6px;align-items:center"><h3>Payload</h3><span class="spacer"></span><div class="seg" data-seg id="payloadSeg"><button aria-pressed="true" data-v="pk">Gửi Pancake</button><button data-v="amz">JSON Amazon (R2)</button></div></div>
+        <pre class="json" id="odPayload"></pre>
+        <div class="devnote"><b>Dev:</b> <code>GET /api/orders/:shop/:amazonOrderId</code> trả đơn + item + <code>hv_amz_order_event</code> + <code>hv_pancake_order_link</code> + <code>hv_audit_log</code> theo entity. JSON Amazon đọc từ R2 <code>hv-hub-raw</code> theo <code>raw_r2_key</code> (chỉ tải khi bấm). Payload Pancake = bản đã gửi lần cuối (lưu R2 theo correlation_id). <b>Bỏ qua</b> bắt buộc nhập lý do → <code>state='SKIPPED'</code>, ghi audit <code>push.skip</code>. Không hiện thông tin khách từ Amazon (PII đã ẩn, không lấy BUYER/RECIPIENT). Nút "Sync lại / Đẩy lại" chỉ hiện với vai trò có quyền <code>orders.write</code>.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =============================== MAPPING =============================== -->
+<section id="tab-mapping" hidden>
+  <div class="page-q"><b>SKU Amazon nào chưa gắn với sản phẩm Pancake?</b><span class="muted">Đơn có SKU chưa map sẽ đứng ở "Chờ map" — map xong, các đơn đó tự vào lại hàng đợi đẩy.</span></div>
+  <div class="filters">
+    <label class="field">Shop Amazon <select><option>HV US</option><option>HV Canada</option><option>HV Mexico</option></select></label>
+    <label class="field">Shop Pancake <select><option>HV US (Pancake)</option></select></label>
+    <div class="field">Tình trạng<div class="seg" data-seg id="mapSeg">
+      <button aria-pressed="true" data-v="none">Chưa map<span class="n">37</span></button>
+      <button data-v="review">Chờ duyệt<span class="n">14</span></button>
+      <button data-v="done">Đã map<span class="n">1.226</span></button>
+      <button data-v="ignored">Bỏ qua<span class="n">7</span></button></div></div>
+    <label class="field">Tìm <input type="search" placeholder="SKU / ASIN / tên" style="width:220px"></label>
+    <span class="spacer"></span>
+    <button class="btn" onclick="say('Tải lại sản phẩm Pancake: GET /shops/{SHOP_ID}/products/variations (phân trang) → upsert hv_pk_variation')">Tải lại sản phẩm Pancake</button>
+    <button class="btn" onclick="autoMatch()">Tự khớp</button>
+    <button class="btn" onclick="openModal('importModal')">Import CSV</button>
+    <button class="btn" onclick="say('Xuất CSV: shop, marketplace, seller_sku, asin, pancake_variation_code, qty, status')">Export CSV</button>
+  </div>
+  <div class="alert ok" id="autoMatchMsg" hidden><span>Tự khớp xong: <b>22</b> SKU khớp theo mã mẫu mã, <b>4</b> theo barcode — đã chuyển sang "Chờ duyệt" (hoặc tự duyệt nếu bật). <b>11</b> SKU không khớp, cần map tay.</span></div>
+  <div class="devnote"><b>Dev:</b> Nguồn SKU Amazon: <code>hv_amz_listing</code> (Reports <code>GET_MERCHANT_LISTINGS_ALL_DATA</code>) ∪ SKU xuất hiện trong <code>hv_amz_order_item</code> mà chưa có listing. Pancake: cache <code>hv_pk_variation</code>. <b>Tự khớp</b> (<code>POST /api/mapping/auto-match</code>): (1) <code>seller_sku</code> = mã mẫu mã, so sánh không phân biệt hoa thường, bỏ khoảng trắng; (2) ASIN/FNSKU = barcode. Khớp chính xác + bật "tự duyệt" (Cấu hình → Mapping) thì <code>status='active'</code>, ngược lại vào "Chờ duyệt". Cột "Đơn chờ" = số đơn <code>WAITING_MAP</code> có SKU này — sắp xếp giảm dần để map cái gây kẹt nhiều nhất trước.</div>
+
+  <div class="card">
+    <div class="card-body flush table-wrap">
+      <table id="mapTable">
+        <thead><tr><th class="l">SKU Amazon</th><th class="l">ASIN · FNSKU</th><th class="l">Tên trên Amazon</th><th class="c">Kênh</th><th class="l">Marketplace</th><th class="l">→ Pancake</th><th class="l">Cách khớp</th><th>Đơn chờ</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- =============================== DỮ LIỆU AMAZON =============================== -->
+<section id="tab-amzdata" hidden>
+  <div class="page-q"><b>Dữ liệu Amazon đã đồng bộ về hệ thống</b><span class="muted">Chỉ xem. Nhóm nào chưa bật ở Cấu hình → Kết nối Amazon sẽ hiện "chưa bật".</span></div>
+  <div class="subtabs" id="amzSub">
+    <button aria-selected="true" data-v="listing">Sản phẩm / listing</button>
+    <button data-v="inv">Tồn kho FBA</button>
+    <button data-v="fin">Tài chính theo đơn</button>
+    <button data-v="ret">Hoàn hàng</button>
+  </div>
+  <div class="filters">
+    <label class="field">Shop <select><option>HV US</option><option>HV Canada</option><option>HV Mexico</option></select></label>
+    <label class="field">Marketplace <select><option>US</option></select></label>
+    <label class="field">Tìm <input type="search" placeholder="SKU / ASIN" style="width:200px"></label>
+    <span class="spacer"></span><span class="stamp" id="amzStamp">Đồng bộ 06:05 hôm nay · Reports API</span>
+    <button class="btn" onclick="say('Chạy ngay dataset này cho shop đang chọn → message vào queue hv-hub-sync (ghi audit sync.manual)')">Đồng bộ ngay</button>
+  </div>
+  <div class="card"><div class="card-body flush table-wrap" id="amzBody"></div></div>
+</section>
+
+<!-- =============================== HÀNG ĐỢI ĐẨY =============================== -->
+<section id="tab-queue" hidden>
+  <div class="page-q"><b>Đơn nào chưa lên được Pancake và cần làm gì?</b><span class="muted">Lỗi dữ liệu không tự thử lại — sửa nguyên nhân rồi bấm Đẩy lại. Lỗi tạm thời (429/5xx/timeout) tự thử lại 5 lần rồi vào DLQ.</span></div>
+  <div class="filters">
+    <div class="field">Loại<div class="seg" data-seg id="qSeg">
+      <button aria-pressed="true" data-v="FAILED_DATA">Lỗi dữ liệu<span class="n">6</span></button>
+      <button data-v="WAITING_MAP">Chờ map<span class="n">26</span></button>
+      <button data-v="WAITING_CFG">Chờ cấu hình<span class="n">2</span></button>
+      <button data-v="DLQ">DLQ<span class="n">3</span></button>
+      <button data-v="RETRY">Đang thử lại<span class="n">4</span></button></div></div>
+    <span class="spacer"></span>
+    <button class="btn" onclick="say('Đẩy lại các dòng đã chọn: ghi hv_push_outbox reason=retry cho từng đơn, mỗi đơn 1 audit push.retry cùng 1 correlation_id lô')">Đẩy lại đã chọn</button>
+    <button class="btn" onclick="skipOrder()">Bỏ qua đã chọn</button>
+  </div>
+  <div class="card"><div class="card-body flush table-wrap">
+    <table id="qTable"><thead><tr><th class="c"><input type="checkbox"></th><th class="l">Mã đơn Amazon</th><th class="l">Shop</th><th class="l">Lý do</th><th>Lần thử</th><th class="l">Lần cuối</th><th class="l">Correlation</th><th></th></tr></thead><tbody></tbody></table>
+    <div class="devnote"><b>Dev:</b> Đọc <code>hv_pancake_order_link</code> theo <code>state</code>; DLQ đọc qua bảng phản chiếu (consumer của <code>hv-hub-dlq</code> ghi <code>state='FAILED'</code> + <code>last_error</code>, KHÔNG ack mất). "Chờ cấu hình" = trạng thái Amazon chưa có dòng trong <code>hv_status_map</code> của tuyến. Bấm Correlation → tab Nhật ký lọc theo id đó. Lỗi Pancake hiển thị nguyên văn message + HTTP status.</div>
+  </div></div>
+</section>
+
+<!-- =============================== JOBS =============================== -->
+<section id="tab-jobs" hidden>
+  <div class="page-q"><b>Các job đồng bộ có chạy đều không, có job nào lỗi?</b></div>
+  <div class="split">
+    <div>
+      <div class="card">
+        <div class="card-head"><h3>Lịch chạy</h3><span class="muted">Cron Worker <code>*/1 * * * *</code> chỉ xếp việc; việc thật chạy ở queue <code>hv-hub-sync</code></span></div>
+        <div class="card-body flush table-wrap">
+          <table>
+            <thead><tr><th class="l">Dataset</th><th class="l">API</th><th class="l">Lịch</th><th class="l">Lần gần nhất</th><th>Thời gian</th><th>Dòng mới / cập nhật</th><th></th></tr></thead>
+            <tbody>
+              <tr><td class="l"><b>Đơn hàng</b> · incremental</td><td class="l"><code>searchOrders</code> 2026-01-01</td><td class="l">5 phút</td><td class="l"><span class="st ok">10:13</span></td><td>42 s</td><td>38 / 112</td><td><button class="btn small" onclick="say('Chạy ngay incremental đơn hàng cho mọi shop đang bật')">Chạy ngay</button></td></tr>
+              <tr><td class="l"><b>Sản phẩm / listing</b></td><td class="l">Reports <code>GET_MERCHANT_LISTINGS_ALL_DATA</code></td><td class="l">06:00 hằng ngày</td><td class="l"><span class="st ok">06:05</span></td><td>4 ph 12 s</td><td>3 / 41</td><td><button class="btn small" onclick="say('createReport → chờ DONE → tải → parse → upsert hv_amz_listing')">Chạy ngay</button></td></tr>
+              <tr><td class="l"><b>Đẩy Pancake</b></td><td class="l">outbox → <code>hv-hub-pancake-push</code></td><td class="l">1 phút</td><td class="l"><span class="st ok">10:15</span></td><td>3 s</td><td>12 / 0</td><td></td></tr>
+              <tr><td class="l"><b>Refresh token</b></td><td class="l">LWA</td><td class="l">30 phút</td><td class="l"><span class="st bad">08:42 · 1 lỗi</span></td><td>1 s</td><td></td><td></td></tr>
+              <tr><td class="l"><b>Tồn kho FBA</b></td><td class="l"><code>getInventorySummaries</code> v1</td><td class="l">1 giờ</td><td class="l"><span class="st ok">10:00</span></td><td>18 s</td><td>0 / 296</td><td><button class="btn small" onclick="say('Chạy ngay tồn FBA')">Chạy ngay</button></td></tr>
+              <tr><td class="l"><b>Dọn nhật ký</b></td><td class="l">D1 → R2</td><td class="l">02:00 hằng ngày</td><td class="l"><span class="st ok">02:00</span></td><td>9 s</td><td></td><td></td></tr>
+            </tbody>
+          </table>
+          <div class="devnote"><b>Dev:</b> Bảng tĩnh khai báo trong code (<code>src/jobs/scheduler.ts</code>), cột "lần gần nhất" từ <code>hv_job_run</code>. Mỗi (shop × dataset) là 1 message riêng nên lỗi shop này không chặn shop khác. Lỗi 3 lần liên tiếp → Lark.</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>Lần chạy gần đây</h3><span class="spacer"></span><select class="btn small"><option>Tất cả shop</option><option>HV US</option></select><select class="btn small"><option>Mọi trạng thái</option><option>Lỗi</option></select></div>
+        <div class="card-body flush table-wrap">
+          <table>
+            <thead><tr><th class="l">Bắt đầu</th><th class="l">Job</th><th class="l">Shop</th><th class="l">Kết quả</th><th>Trang</th><th>Mới</th><th>Cập nhật</th><th class="l">Correlation</th></tr></thead>
+            <tbody>
+              <tr><td class="l">10:13:02</td><td class="l">orders.incremental</td><td class="l">HV US</td><td class="l"><span class="st ok">OK</span></td><td>2</td><td>31</td><td>96</td><td class="l"><a class="mono" onclick="go('logs')">01J9Z…7K2Q</a></td></tr>
+              <tr><td class="l">10:13:02</td><td class="l">orders.incremental</td><td class="l">HV Mexico</td><td class="l"><span class="st warn">OK sau 2 lần 429</span></td><td>1</td><td>4</td><td>9</td><td class="l"><a class="mono" onclick="go('logs')">01J9Z…7K2R</a></td></tr>
+              <tr><td class="l">10:13:02</td><td class="l">orders.incremental</td><td class="l">HV Canada</td><td class="l"><span class="st bad">Bỏ qua — auth_error</span></td><td></td><td></td><td></td><td class="l"><a class="mono" onclick="go('logs')">01J9Z…7K2S</a></td></tr>
+              <tr><td class="l">08:42:10</td><td class="l">token.refresh</td><td class="l">HV Canada</td><td class="l"><span class="st bad">invalid_grant</span></td><td></td><td></td><td></td><td class="l"><a class="mono" onclick="go('logs')">01J9Y…P0AB</a></td></tr>
+              <tr><td class="l">06:00:03</td><td class="l">listings.daily</td><td class="l">HV US</td><td class="l"><span class="st ok">OK</span></td><td></td><td>3</td><td>41</td><td class="l"><a class="mono" onclick="go('logs')">01J9X…3M1D</a></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h3>Backfill lịch sử đơn</h3></div>
+      <div class="card-body">
+        <div class="grid2">
+          <label class="field">Shop <select><option>HV US</option><option>HV Mexico</option></select></label>
+          <label class="field">Nguồn <select><option>searchOrders (createdAfter)</option><option>Reports — ALL_ORDERS (nạp nhanh)</option></select></label>
+          <label class="field">Từ ngày <input type="text" value="01/01/2025"></label>
+          <label class="field">Đến ngày <input type="text" value="06/10/2026"></label>
+          <label class="field span2"><span><input type="checkbox"> Đẩy lên Pancake cả đơn cũ</span><span class="hint">Mặc định tắt: đơn backfill chỉ lưu vào D1, không đẩy — tránh tạo đơn cũ hàng loạt trên Pancake.</span></label>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:12px"><button class="btn primary" onclick="say('Tạo hv_sync_cursor mode=backfill, chia cửa sổ 7 ngày, xếp message vào hv-hub-sync')">Bắt đầu</button></div>
+        <h3 style="margin:18px 0 4px">Đang chạy</h3>
+        <div style="font-size:13px">HV US · 01/01/2025 → 06/10/2026 <span class="st info" style="margin-left:6px">Đang chạy</span></div>
+        <div class="progress"><div style="width:38%"></div></div>
+        <div class="muted">Cửa sổ 26/92 (đến 01/07/2025) · 51.240 đơn · ước còn ~14 giờ (giới hạn ~1 request/3 phút sau khi hết burst)</div>
+        <div style="display:flex;gap:8px;margin-top:8px"><button class="btn small" onclick="say('Tạm dừng: status=paused, message đang chạy xong cửa sổ hiện tại rồi dừng')">Tạm dừng</button><button class="btn small danger" onclick="say('Huỷ: xoá cursor backfill; dữ liệu đã nạp giữ nguyên')">Huỷ</button></div>
+        <div class="devnote"><b>Dev:</b> <code>hv_sync_cursor(mode='backfill', window_from, window_to, next_token)</code> — dừng ở đâu chạy tiếp ở đó (kể cả khi Worker restart). <code>paginationToken</code> hết hạn sau 24 giờ: nếu quá hạn thì chạy lại cửa sổ hiện tại từ đầu (upsert idempotent nên không trùng). Đơn backfill gắn cờ <code>source='backfill'</code>, mặc định KHÔNG ghi outbox. Ước lượng thời gian tính theo rate thực tế đọc từ header <code>x-amzn-RateLimit-Limit</code>.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =============================== NHẬT KÝ =============================== -->
+<section id="tab-logs" hidden>
+  <div class="page-q"><b>Ai / hệ thống đã làm gì, lúc nào, kết quả ra sao?</b><span class="muted">Bấm correlation id để xem cả chuỗi Amazon → D1 → Pancake của cùng một lần xử lý.</span></div>
+  <div class="filters">
+    <label class="field">Thời gian <input type="text" value="06/10/2026 00:00 – 10:15" style="width:200px"></label>
+    <label class="field">Người / hệ thống <select><option>Tất cả</option><option>DungNT</option><option>KT. Hạnh</option><option>system:cron</option><option>system:queue</option></select></label>
+    <label class="field">Hành động <select><option>Tất cả</option><option>shop.*</option><option>token.refresh</option><option>amz.*</option><option>order.upsert</option><option>map.*</option><option>pancake.*</option><option>push.*</option><option>user.*</option><option>config.*</option></select></label>
+    <div class="field">Kết quả<div class="seg" data-seg><button aria-pressed="true">Tất cả</button><button>Lỗi</button></div></div>
+    <label class="field">Mã đơn / correlation <input type="search" id="logSearch" placeholder="113-… hoặc 01J9…" style="width:230px"></label>
+    <span class="spacer"></span>
+    <button class="btn" onclick="say('Xuất CSV nhật ký đang lọc')">Xuất CSV</button>
+  </div>
+  <div class="card"><div class="card-body flush table-wrap">
+    <table id="logTable"><thead><tr><th class="l">Thời gian</th><th class="l">Ai</th><th class="l">Hành động</th><th class="l">Đối tượng</th><th class="l">Kết quả</th><th>ms</th><th class="l">Nội dung</th><th class="l">Correlation</th></tr></thead><tbody></tbody></table>
+    <div class="devnote"><b>Dev:</b> <code>hv_audit_log</code> (+ <code>hv_api_call_log</code> cho lời gọi ra ngoài, gộp khi lọc theo correlation). <code>detail_json</code> đã qua <code>redact()</code> — không bao giờ có token, secret, api_key, mật khẩu. Lưu D1 180 ngày; cron 02:00 xuất bản cũ sang R2 <code>hv-hub-raw/audit/yyyy/mm/dd.jsonl.gz</code> rồi xoá. Chỉ Quản trị xem được nhật ký của người khác. Bấm dòng có <code>x-amzn-RequestId</code> → hiện để gửi Amazon Support.</div>
+  </div></div>
+</section>
+
+<!-- =============================== CẤU HÌNH =============================== -->
+<section id="tab-config" hidden>
+  <div class="subtabs" id="cfgSub">
+    <button aria-selected="true" data-v="amazon">Kết nối Amazon</button>
+    <button data-v="pancake">Pancake</button>
+    <button data-v="users">Tài khoản &amp; vai trò</button>
+    <button data-v="alerts">Cảnh báo &amp; lưu trữ</button>
+  </div>
+
+  <!-- ---- Kết nối Amazon ---- -->
+  <div id="cfg-amazon">
+    <div class="page-q"><b>Shop Amazon nào đang kết nối, token còn chạy không?</b><span class="muted">Cùng bộ trường với <code>Amazon_Configs</code> hiện tại: ShopName, ClientId, ClientSecret, RefreshToken, MarketplaceIds.</span></div>
+    <div class="split">
+      <div class="card">
+        <div class="card-head"><h3>Shop Amazon</h3><span class="spacer"></span><button class="btn small primary" onclick="openShop('new')">+ Thêm shop</button></div>
+        <div class="card-body flush table-wrap">
+          <table id="shopTable">
+            <thead><tr><th class="l">ShopName</th><th class="l">MarketplaceIds</th><th class="l">Region</th><th class="l">ClientId</th><th class="l">Token</th><th class="l">Dữ liệu sync</th><th class="l">Trạng thái</th></tr></thead>
+            <tbody>
+              <tr class="click" onclick="openShop('us')"><td class="l"><b>HV US</b></td><td class="l"><span class="tag">US</span></td><td class="l">na</td><td class="l mono">…7f3a</td><td class="l"><span class="st ok">Còn 41 phút</span></td><td class="l">Đơn · SP · Hoàn · Tồn · TC</td><td class="l"><span class="st ok">Đang chạy</span></td></tr>
+              <tr class="click" onclick="openShop('ca')"><td class="l"><b>HV Canada</b></td><td class="l"><span class="tag">CA</span></td><td class="l">na</td><td class="l mono">…7f3a</td><td class="l"><span class="st bad">invalid_grant</span></td><td class="l">Đơn · SP</td><td class="l"><span class="st bad">Lỗi xác thực</span></td></tr>
+              <tr class="click" onclick="openShop('mx')"><td class="l"><b>HV Mexico</b></td><td class="l"><span class="tag">MX</span></td><td class="l">na</td><td class="l mono">…7f3a</td><td class="l"><span class="st ok">Còn 18 phút</span></td><td class="l">Đơn · SP · Tồn</td><td class="l"><span class="st ok">Đang chạy</span></td></tr>
+            </tbody>
+          </table>
+          <div class="devnote"><b>Dev:</b> <code>hv_shop</code> + <code>hv_shop_marketplace</code> + <code>hv_access_token</code>. ClientId hiện 4 ký tự cuối (<code>client_secret_hint</code>, <code>refresh_token_hint</code> cũng vậy). Region suy từ marketplace đầu tiên; lưu thì kiểm mọi marketplace cùng region, khác region → 400. Shop mới tạo ở <code>status='draft'</code>, chỉ chuyển <code>active</code> khi "Test kết nối" qua đủ bước.</div>
+        </div>
+      </div>
+
+      <div class="card" id="shopForm">
+        <div class="card-head"><h3 id="shopFormTitle">HV US</h3><span id="shopFormState" class="st ok">Đang chạy</span></div>
+        <div class="card-body">
+          <div class="alert err" id="shopAuthErr" hidden><span>Amazon từ chối RefreshToken (<code>invalid_grant</code>) lúc 08:42 hôm nay. Seller có thể đã thu hồi quyền hoặc token đã đổi. Authorize lại app trong Seller Central rồi dán RefreshToken mới.</span></div>
+          <div class="grid2">
+            <label class="field span2">ShopName <input id="fShopName" value="HV US"></label>
+            <label class="field">ClientId <input class="mono" value="amzn1.application-oa2-client.••••••••7f3a"><span class="hint">Nhiều shop dùng chung 1 app thì nhập cùng giá trị</span></label>
+            <label class="field">ClientSecret <input class="mono" type="password" value="xxxxxxxxxxxxxxxx" placeholder="Đã lưu · …k9Qe — dán để thay"><span class="hint">Đã lưu · …k9Qe — chỉ dán khi muốn thay</span></label>
+            <label class="field">ClientSecret hết hạn ngày <input value="17/10/2026"><span class="hint" style="color:var(--warn-ink)">Còn 11 ngày — cảnh báo từ 14 ngày trước</span></label>
+            <label class="field">RefreshToken <input class="mono" type="password" value="xxxxxxxxxxxxxxxx"><span class="hint">Đã lưu · …Wd2M · bắt buộc: quyền shop cấp cho app</span></label>
+            <div class="field span2">MarketplaceIds
+              <div class="chips" id="mkChips">
+                <span class="chip on" data-r="na">US · ATVPDKIKX0DER</span><span class="chip" data-r="na">CA · A2EUQ1WTGCTBG2</span><span class="chip" data-r="na">MX · A1AM78C64UM0Y8</span><span class="chip" data-r="na">BR · A2Q3Y263D00KWC</span>
+                <span class="chip" data-r="eu">UK · A1F83G8C2ARO7P</span><span class="chip" data-r="eu">DE · A1PA6795UKMFR9</span><span class="chip" data-r="eu">FR · A13V1IB3VIYZZH</span>
+                <span class="chip" data-r="fe">JP · A1VC38T7YXB528</span><span class="chip" data-r="fe">AU · A39IBJ37TRP1C6</span><span class="chip" data-r="fe">SG · A19VAU5U5O7RUS</span>
+              </div>
+              <span class="hint" id="regionHint">Region: <b>na</b> → <code>sellingpartnerapi-na.amazon.com</code> (tự suy ra)</span>
+            </div>
+            <div class="field span2">Dữ liệu đồng bộ
+              <div class="checks">
+                <label><input type="checkbox" checked disabled> <span><b>Đơn hàng</b> — bắt buộc · 5 phút<span class="sub">Orders v2026-01-01 · role Inventory and Order Tracking</span></span></label>
+                <label><input type="checkbox" checked disabled> <span><b>Sản phẩm / listing</b> — bắt buộc · 06:00<span class="sub">Reports + Listings Items 2021-08-01 · role Product Listing</span></span></label>
+                <label><input type="checkbox" checked> <span>Hoàn hàng · 06:20<span class="sub">Reports returns · role Amazon Fulfillment</span></span></label>
+                <label><input type="checkbox" checked> <span>Tồn kho FBA · 1 giờ<span class="sub">FBA Inventory v1 · role Amazon Fulfillment</span></span></label>
+                <label><input type="checkbox" checked> <span>Tài chính theo đơn · 06:40<span class="sub">Finances 2024-06-19 · role Finance and Accounting</span></span></label>
+                <label><input type="checkbox"> <span>Kỳ thanh toán<span class="sub">Settlement report · role Finance and Accounting</span></span></label>
+                <label><input type="checkbox"> <span>Doanh số &amp; traffic<span class="sub">Sales and Traffic · role Brand Analytics</span></span></label>
+                <label><input type="checkbox"> <span>Lô hàng gửi FBA<span class="sub">Fulfillment Inbound 2024-03-20</span></span></label>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+            <button class="btn" onclick="runTest()">Test kết nối</button>
+            <button class="btn primary" onclick="say('PUT /api/shops/:id — mã hoá ClientSecret/RefreshToken bằng DATA_KEY (AES-GCM, v1:iv:ct), ghi hv_audit_log shop.update (before/after đã che secret)')">Lưu</button>
+            <span class="spacer"></span>
+            <button class="btn" onclick="say('Tạm dừng: status=paused — không xếp job mới, job đang chạy chạy xong')">Tạm dừng sync</button>
+          </div>
+          <div id="testBox" hidden style="margin-top:14px">
+            <h3 style="margin-bottom:6px">Kết quả test kết nối</h3>
+            <ul class="testlog" id="testLog"></ul>
+          </div>
+          <div class="devnote"><b>Dev — Test kết nối</b> (<code>POST /api/shops/:id/test</code>, ghi audit <code>shop.test</code>): (1) LWA <code>POST api.amazon.com/auth/o2/token</code> grant_type=refresh_token → lỗi <code>invalid_client</code> = sai ClientId/Secret, <code>invalid_grant</code> = sai/thu hồi RefreshToken. (2) Sellers v1 <code>getMarketplaceParticipations</code> → đối chiếu MarketplaceIds. (3) <code>searchOrders</code> maxResultsPerPage=1 → role đơn hàng. (4) Reports <code>getReports</code> (reportTypes=GET_MERCHANT_LISTINGS_ALL_DATA) → role listing. (5) Với từng dataset tuỳ chọn đang tick: gọi 1 request nhẹ để kiểm role; thiếu role → báo cụ thể + nhắc "authorize lại để có RefreshToken mới". Mỗi bước hiện <code>x-amzn-RequestId</code>. Secret không bao giờ trả về client: input hiện placeholder, để trống khi lưu = giữ nguyên.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ---- Pancake ---- -->
+  <div id="cfg-pancake" hidden>
+    <div class="page-q"><b>Đơn Amazon sẽ lên Pancake thế nào?</b><span class="muted">4 bước, làm lần lượt. Tuyến chỉ đẩy thật khi đủ 4 bước và đã tắt "Chạy thử".</span></div>
+    <div class="filters">
+      <label class="field">Tuyến đơn <select id="routeSel"><option>HV US · US → Pancake "HV US"</option><option>HV Mexico · MX → Pancake "HV US"</option><option>+ Thêm tuyến</option></select></label>
+      <span class="stamp">Chế độ hiện tại: <span class="st warn">Chạy thử</span></span>
+    </div>
+    <div class="stepper" id="pkStepper">
+      <div class="step done" data-s="1"><div class="dot">1</div><div class="lbl">Kết nối shop Pancake</div></div><div class="step-line done"></div>
+      <div class="step done" data-s="2"><div class="dot">2</div><div class="lbl">Tuyến đơn</div></div><div class="step-line done"></div>
+      <div class="step current" data-s="3"><div class="dot">3</div><div class="lbl">Khách &amp; địa chỉ</div></div><div class="step-line"></div>
+      <div class="step" data-s="4"><div class="dot">4</div><div class="lbl">Ánh xạ trạng thái</div></div>
+    </div>
+
+    <div class="card pk-step" data-s="1" hidden>
+      <div class="card-head"><h3>Bước 1 — Kết nối shop Pancake</h3></div>
+      <div class="card-body">
+        <div class="grid3">
+          <label class="field">Tên hiển thị <input value="HV US"></label>
+          <label class="field">SHOP_ID <input class="mono" value="1942006133"></label>
+          <label class="field">api_key <input class="mono" type="password" value="xxxxxxxxxxxx"><span class="hint">Đã lưu · …a81c — Pancake → Cấu hình → Cấu hình ứng dụng → API KEY</span></label>
+        </div>
+        <div class="alert ok" style="margin-top:12px"><span>Kết nối OK lúc 09:58 · shop "HV US" · 4 kho · 23 nguồn đơn · 61 thẻ · 4.812 mẫu mã.</span></div>
+        <div style="display:flex;gap:8px"><button class="btn" onclick="say('GET /shops/{SHOP_ID}?api_key=… + warehouses + order_source + tags → cache vào hv_pk_shop.meta_json')">Kiểm tra kết nối</button><button class="btn primary" onclick="pkStep(2)">Lưu &amp; tiếp</button></div>
+        <div class="devnote"><b>Dev:</b> <code>hv_pk_shop</code>; api_key mã hoá DATA_KEY. Base <code>https://pos.pages.fm/api/v1</code>, xác thực <code>?api_key=</code>. Body luôn gửi <code>Content-Type: application/json</code> (ops đã kiểm chứng: sai kiểu thì Pancake bỏ qua tham số). 1 shop Pancake có thể nhận đơn từ nhiều shop Amazon.</div>
+      </div>
+    </div>
+
+    <div class="card pk-step" data-s="2" hidden>
+      <div class="card-head"><h3>Bước 2 — Tuyến đơn</h3></div>
+      <div class="card-body">
+        <div class="grid3">
+          <label class="field">Shop Amazon <select><option>HV US</option></select></label>
+          <label class="field">Marketplace <select><option>US · ATVPDKIKX0DER</option><option>Mọi marketplace của shop</option></select></label>
+          <label class="field">Shop Pancake nhận đơn <select><option>HV US (1942006133)</option></select></label>
+          <label class="field">Kho cho đơn FBA <select><option>Kho ảo Amazon FBA US</option><option>Kho Hà Nội</option></select></label>
+          <label class="field">Kho cho đơn FBM <select><option>Kho US - New Jersey</option><option>Kho Hà Nội</option></select></label>
+          <label class="field">Nguồn đơn <select><option>Amazon</option><option>Khác</option></select></label>
+          <label class="field span2">Thẻ gắn kèm <input class="mono" value="Amazon, AMZ-{marketplace}, {fulfilled_by}"><span class="hint">Biến: {marketplace} {fulfilled_by} {shop_name} → VD "Amazon, AMZ-US, FBA"</span></label>
+          <div class="field">Chế độ<div class="seg" data-seg><button aria-pressed="true">Chạy thử</button><button>Đẩy thật</button></div><span class="hint">Chạy thử: dựng payload, lưu, hiện ở Đơn hàng — không gửi</span></div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:12px"><button class="btn" onclick="pkStep(1)">Quay lại</button><button class="btn primary" onclick="pkStep(3)">Lưu &amp; tiếp</button></div>
+        <div class="devnote"><b>Dev:</b> <code>hv_route</code>. Khớp tuyến: (shop, marketplace) cụ thể trước, rồi tới marketplace NULL. Danh sách kho / nguồn / thẻ lấy từ cache bước 1 (không gõ tay). Chuyển "Chạy thử → Đẩy thật" yêu cầu bước 3 + 4 đã lưu và bắt buộc xác nhận; đơn đã ở <code>DRY_RUN</code> không tự đẩy — có nút "Đẩy các đơn chạy thử" riêng.</div>
+      </div>
+    </div>
+
+    <div class="card pk-step" data-s="3">
+      <div class="card-head"><h3>Bước 3 — Khách &amp; địa chỉ</h3><span class="muted">Dùng khách + địa chỉ có sẵn trên Pancake — không lấy thông tin khách từ Amazon</span></div>
+      <div class="card-body">
+        <div class="grid2">
+          <label class="field">Tìm khách trên Pancake <input type="search" value="Amazon Customer US"><span class="hint">Tìm theo tên hoặc SĐT trong shop Pancake của tuyến</span></label>
+          <div class="field">Khách đã chọn
+            <div class="card" style="margin:0"><div class="card-body" style="padding:8px 12px"><b>Amazon Customer US</b> <span class="mono muted">· 0900 000 101 · id 8f21…c04</span></div></div>
+          </div>
+          <div class="field span2">Địa chỉ giao (địa chỉ có sẵn của khách này)
+            <div class="table-wrap"><table>
+              <thead><tr><th class="c"></th><th class="l">Người nhận</th><th class="l">SĐT</th><th class="l">Địa chỉ</th><th class="l">Tỉnh / Huyện / Xã (mã Pancake)</th></tr></thead>
+              <tbody>
+                <tr><td class="c"><input type="radio" name="addr" checked></td><td class="l">Amazon Customer US</td><td class="l mono">0900000101</td><td class="l">Kho FBA — 12 Duy Tân</td><td class="l">Hà Nội / Cầu Giấy / Dịch Vọng Hậu <span class="sub mono">101 · 10105 · 1010509</span></td></tr>
+                <tr><td class="c"><input type="radio" name="addr"></td><td class="l">Amazon Customer US</td><td class="l mono">0900000101</td><td class="l">VP HVH — 88 Láng Hạ</td><td class="l">Hà Nội / Đống Đa / Láng Hạ <span class="sub mono">101 · 10109 · 1010917</span></td></tr>
+              </tbody></table></div>
+          </div>
+          <label class="field span2">Ghi chú đơn <input class="mono" value="Amazon {amazon_order_id} · {marketplace} · {fulfilled_by}"><span class="hint">Xem trước: Amazon 113-4829175-2038641 · US · FBA</span></label>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:12px"><button class="btn" onclick="pkStep(2)">Quay lại</button><button class="btn primary" onclick="pkStep(4)">Lưu &amp; tiếp</button></div>
+        <div class="devnote"><b>Dev:</b> Lưu <code>hv_route.pk_customer_id</code>, <code>pk_address_id</code> + <code>bill_snapshot_json</code> (tên, SĐT, địa chỉ, province_id/district_id/commune_id) để đơn vẫn đẩy được nếu Pancake tạm lỗi khi tra khách. Payload: <code>bill_full_name</code>, <code>bill_phone_number</code>, <code>shipping_address{…}</code> lấy từ snapshot. ⚠ Cần xác nhận endpoint tìm khách + địa chỉ của khách trên Pancake ở P3 (test trên shop thử). Không lấy <code>BUYER/RECIPIENT</code> của Amazon (PII đã ẩn).</div>
+      </div>
+    </div>
+
+    <div class="card pk-step" data-s="4" hidden>
+      <div class="card-head"><h3>Bước 4 — Ánh xạ trạng thái</h3><span class="muted">Bắt buộc trước khi đẩy thật · trạng thái Pancake lấy từ shop thật</span></div>
+      <div class="card-body flush table-wrap">
+        <table id="statusMap">
+          <thead><tr><th class="l">Trạng thái Amazon</th><th class="c">Kênh</th><th class="l">Hành động</th><th class="l">Trạng thái Pancake</th><th>Đơn 30 ngày</th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <div style="padding:12px 16px;display:grid;gap:10px">
+          <label class="field">Khi đơn Pancake đã đi xa hơn (đã đóng gói / đã gửi) mà Amazon huỷ hoặc lùi trạng thái
+            <select style="max-width:420px"><option>Bỏ qua, gắn thẻ "AMZ-lệch" và cảnh báo (đề xuất)</option><option>Vẫn cập nhật theo Amazon</option></select></label>
+          <div style="display:flex;gap:8px"><button class="btn" onclick="pkStep(3)">Quay lại</button><button class="btn primary" onclick="say('PUT /api/routes/:id/status-map — ghi hv_status_map, audit config.status_map (before/after). Đơn đang Chờ cấu hình được xếp lại vào outbox.')">Lưu ánh xạ</button></div>
+        </div>
+        <div class="devnote"><b>Dev:</b> <code>hv_status_map(route_id, amazon_status, channel, action, pancake_status)</code>. Action: <code>none | create | upsert | update_only | cancel</code>. Trạng thái chưa có dòng → đơn <code>WAITING_CFG</code> (không đẩy bừa). Chống lùi: so thứ tự trạng thái Pancake hiện tại (GET đơn trước khi PUT) với trạng thái đích; lùi + tuỳ chọn "Bỏ qua" → không PUT, chỉ thêm thẻ + Lark. Cột "Đơn 30 ngày" giúp biết dòng nào ảnh hưởng nhiều. Danh sách trạng thái Pancake là enum cố định của Pancake (Mới 0, Đã xác nhận 1, Đã gửi hàng 2, Đã nhận 3, Đang hoàn 4, Đã huỷ 6, … — xác nhận lại ở P3).</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ---- Tài khoản ---- -->
+  <div id="cfg-users" hidden>
+    <div class="page-q"><b>Ai được vào HV Hub và được làm gì?</b></div>
+    <div class="split">
+      <div class="card"><div class="card-head"><h3>Tài khoản</h3><span class="spacer"></span><button class="btn small primary" onclick="say('Thêm tài khoản: username, mật khẩu tạm (PBKDF2), vai trò, shop được xem')">+ Thêm</button></div>
+        <div class="card-body flush table-wrap"><table>
+          <thead><tr><th class="l">Tài khoản</th><th class="l">Vai trò</th><th class="l">Shop được xem</th><th class="l">Đăng nhập gần nhất</th></tr></thead>
+          <tbody>
+            <tr><td class="l"><b>DungNT</b></td><td class="l">Quản trị</td><td class="l">Tất cả</td><td class="l">06/10 09:31</td></tr>
+            <tr><td class="l"><b>KT. Hạnh</b></td><td class="l">Chỉ xem</td><td class="l">Tất cả</td><td class="l">06/10 08:02</td></tr>
+            <tr><td class="l"><b>vh.amazon01</b></td><td class="l">Vận hành</td><td class="l">HV US, HV Mexico</td><td class="l">05/10 17:44</td></tr>
+          </tbody></table></div></div>
+      <div class="card"><div class="card-head"><h3>Vai trò → quyền</h3></div>
+        <div class="card-body flush table-wrap"><table>
+          <thead><tr><th class="l">Quyền</th><th class="c">Quản trị</th><th class="c">Vận hành</th><th class="c">Chỉ xem</th></tr></thead>
+          <tbody>
+            <tr><td class="l">Xem tổng quan, đơn, dữ liệu Amazon</td><td class="c">✓</td><td class="c">✓</td><td class="c">✓</td></tr>
+            <tr><td class="l">Sync lại / đẩy lại / bỏ qua đơn</td><td class="c">✓</td><td class="c">✓</td><td class="c"></td></tr>
+            <tr><td class="l">Sửa mapping sản phẩm</td><td class="c">✓</td><td class="c">✓</td><td class="c"></td></tr>
+            <tr><td class="l">Chạy job / backfill</td><td class="c">✓</td><td class="c">✓</td><td class="c"></td></tr>
+            <tr><td class="l">Xem nhật ký của người khác</td><td class="c">✓</td><td class="c"></td><td class="c"></td></tr>
+            <tr><td class="l">Cấu hình Amazon / Pancake / tài khoản</td><td class="c">✓</td><td class="c"></td><td class="c"></td></tr>
+          </tbody></table>
+          <div class="devnote"><b>Dev:</b> Giống ops: <code>hv_user</code>, <code>hv_user_shop</code>, <code>hv_role</code>, <code>hv_role_perm</code>. Tài khoản đầu tiên tạo từ secret <code>ADMIN_USER</code>/<code>ADMIN_PASSWORD</code>. Chống dò mật khẩu: khoá 15 phút sau 5 lần sai / IP+user. Đổi quyền áp ngay, không cần đăng nhập lại.</div>
+        </div></div>
+    </div>
+  </div>
+
+  <!-- ---- Cảnh báo ---- -->
+  <div id="cfg-alerts" hidden>
+    <div class="page-q"><b>Khi có sự cố, ai được báo và nhật ký giữ bao lâu?</b></div>
+    <div class="card"><div class="card-body">
+      <div class="grid2">
+        <label class="field">Lark webhook (bot "HV Hub") <input class="mono" type="password" value="xxxxxxxx"><span class="hint">Đã lưu · …/b7e1</span></label>
+        <label class="field">Signing secret <input class="mono" type="password" value="xxxxxxxx"><span class="hint">Đã lưu · …Q2s9</span></label>
+        <div class="field span2">Gửi cảnh báo khi
+          <div class="checks">
+            <label><input type="checkbox" checked> Token lỗi / sắp hết hạn ClientSecret (14 ngày)</label>
+            <label><input type="checkbox" checked> Job lỗi 3 lần liên tiếp</label>
+            <label><input type="checkbox" checked> DLQ có message</label>
+            <label><input type="checkbox" checked> Đơn chờ map quá 24 giờ</label>
+            <label><input type="checkbox" checked> Đơn lệch trạng thái Amazon ↔ Pancake</label>
+            <label><input type="checkbox" checked> D1 dùng quá 70% dung lượng</label>
+          </div></div>
+        <label class="field">Giữ nhật ký trong D1 (ngày) <input value="180"></label>
+        <label class="field">Giữ payload thô ở R2 (ngày) <input value="730"></label>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:12px"><button class="btn" onclick="say('Gửi 1 tin thử vào nhóm Lark')">Gửi thử</button><button class="btn primary" onclick="say('Lưu hv_setting key=alerts (webhook + secret mã hoá DATA_KEY)')">Lưu</button></div>
+      <div class="devnote"><b>Dev:</b> <code>hv_setting</code> key <code>alerts</code>, <code>retention</code>. Lark Custom bot ký HMAC-SHA256 như ops (<code>src/core/ai/lark.js</code>). Mỗi loại cảnh báo chống gửi lặp: tối đa 1 tin / 1 giờ / (loại, shop).</div>
+    </div></div>
+  </div>
+</section>
+</main>
+
+<!-- =============================== MODALS =============================== -->
+<div class="modal-bg" id="mapModal" hidden onclick="if(event.target===this)closeModal('mapModal')">
+  <div class="modal">
+    <div class="card-head"><h3>Map SKU <span class="mono" id="mmSku">HV-COLL-30-US</span></h3><span class="spacer"></span><button class="btn small" onclick="closeModal('mapModal')">Đóng</button></div>
+    <div class="card-body">
+      <div class="muted" id="mmInfo" style="margin-bottom:10px">B0CXK29QFJ · Marine Collagen Peptides 30 sachets · FBA · US</div>
+      <div class="grid2">
+        <label class="field">Áp dụng cho <select><option>Chỉ marketplace US</option><option>Mọi marketplace của shop</option></select></label>
+        <div class="field">Kiểu<div class="seg" data-seg id="mmType"><button aria-pressed="true" data-v="1">1 sản phẩm</button><button data-v="combo">Combo (nhiều sản phẩm)</button></div></div>
+      </div>
+      <label class="field" style="margin-top:12px">Tìm mẫu mã Pancake <input type="search" placeholder="tên / mã mẫu mã / barcode" value="collagen 30"></label>
+      <div class="table-wrap" style="margin-top:8px"><table>
+        <thead><tr><th class="l">Mẫu mã Pancake</th><th class="l">Mã</th><th class="l">Barcode</th><th>Giá</th><th>Tồn</th><th>SL / 1 SKU</th><th></th></tr></thead>
+        <tbody id="mmLines">
+          <tr><td class="l">Collagen Marine 30 gói</td><td class="l mono">COLL-30</td><td class="l mono">8936012345671</td><td>590.000</td><td>1.240</td><td><input value="1" style="width:56px;text-align:right" class="mono"></td><td><button class="btn small">Bỏ</button></td></tr>
+        </tbody>
+      </table></div>
+      <div class="muted" style="margin-top:6px" id="mmGợiý">Gợi ý theo tên: Collagen Marine 60 gói (COLL-60) · Collagen Marine 30 gói – hộp quà (COLL-30-GIFT)</div>
+      <label class="field" style="margin-top:12px">Ghi chú <input placeholder="VD: listing mới tháng 10"></label>
+      <div class="devnote"><b>Dev:</b> <code>hv_product_map</code> (1 dòng / shop + marketplace + seller_sku) + <code>hv_product_map_line</code> (mỗi mẫu mã 1 dòng, <code>qty</code>, <code>price_ratio</code> — combo chia giá Amazon theo tỉ lệ giá Pancake mặc định). Lưu = <code>match_method='manual'</code>, <code>status='active'</code>, ghi <code>hv_product_map_hist</code> (before/after) + audit <code>map.update</code>. Sau khi lưu: tìm các đơn <code>WAITING_MAP</code> có SKU này → ghi outbox. Có <code>version</code> chống 2 người sửa cùng lúc (409).</div>
+    </div>
+    <div class="modal-foot"><button class="btn" onclick="ignoreSku()">Đánh dấu Bỏ qua</button><span class="spacer"></span><button class="btn" onclick="closeModal('mapModal')">Huỷ</button><button class="btn primary" onclick="saveMap()">Lưu mapping</button></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="importModal" hidden onclick="if(event.target===this)closeModal('importModal')">
+  <div class="modal">
+    <div class="card-head"><h3>Import mapping từ CSV</h3><span class="spacer"></span><button class="btn small" onclick="closeModal('importModal')">Đóng</button></div>
+    <div class="card-body">
+      <div class="muted">Cột: <code>shop, marketplace, seller_sku, pancake_variation_code, qty</code> — combo ghi nhiều dòng cùng seller_sku. <a onclick="say('Tải file mẫu mapping_template.csv')">Tải file mẫu</a></div>
+      <label class="field" style="margin-top:10px">File <input type="file"></label>
+      <h3 style="margin:14px 0 6px">Xem trước — mapping_10-2026.csv</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Dòng</th><th class="l">seller_sku</th><th class="l">Mã Pancake</th><th>SL</th><th class="l">Kết quả</th></tr></thead>
+        <tbody>
+          <tr><td>2</td><td class="l mono">HV-COLL-30-US</td><td class="l mono">COLL-30</td><td>1</td><td class="l"><span class="st ok">Thêm mới</span></td></tr>
+          <tr><td>3</td><td class="l mono">HV-COLL-COMBO3</td><td class="l mono">COLL-30</td><td>3</td><td class="l"><span class="st ok">Combo · dòng 1</span></td></tr>
+          <tr><td>4</td><td class="l mono">HV-VITC-60</td><td class="l mono">VITC-60</td><td>1</td><td class="l"><span class="st warn">Ghi đè mapping cũ (VITC-60-OLD)</span></td></tr>
+          <tr><td>5</td><td class="l mono">HV-OMEGA-90</td><td class="l mono">OMEGA-9O</td><td>1</td><td class="l"><span class="st bad">Không thấy mã trên Pancake</span></td></tr>
+        </tbody></table></div>
+      <div class="muted" style="margin-top:6px">142 dòng · 128 hợp lệ · 9 ghi đè · <b style="color:var(--bad)">5 lỗi</b> — dòng lỗi sẽ bị bỏ qua.</div>
+      <div class="devnote"><b>Dev:</b> <code>POST /api/mapping/import?dry_run=1</code> trả kết quả từng dòng; bấm Áp dụng gọi lại không dry_run. Ghi theo lô bằng D1 <code>batch()</code>, <code>match_method='import'</code>, 1 audit <code>map.import</code> + file gốc lưu R2.</div>
+    </div>
+    <div class="modal-foot"><button class="btn" onclick="closeModal('importModal')">Huỷ</button><button class="btn primary" onclick="closeModal('importModal');say('Đã áp dụng 137 dòng (128 mới + 9 ghi đè), bỏ 5 dòng lỗi')">Áp dụng 137 dòng hợp lệ</button></div>
+  </div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const say=m=>alert(m);
+const fmt=n=>n?n.toLocaleString('vi-VN',{minimumFractionDigits:2,maximumFractionDigits:2}):'';
+
+/* ---------- tabs ---------- */
+const TAB_NAMES={overview:'Tổng quan',orders:'Đơn hàng',mapping:'Sản phẩm & Mapping',amzdata:'Dữ liệu Amazon',queue:'Hàng đợi đẩy',jobs:'Jobs',logs:'Nhật ký',config:'Cấu hình'};
+function go(tab,sub){
+  document.querySelectorAll('#tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===tab));
+  document.querySelectorAll('main>section').forEach(s=>s.hidden=s.id!=='tab-'+tab);
+  $('viewName').textContent=TAB_NAMES[tab];
+  if(sub)cfgSub(sub);
+  history.replaceState(null,'','#'+tab+(sub?'/'+sub:''));
+  window.scrollTo(0,0);
+}
+document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>go(b.dataset.tab));
+$('devToggle').onchange=e=>document.body.classList.toggle('show-dev',e.target.checked);
+$('themeBtn').onclick=()=>{const r=document.documentElement;const dark=r.dataset.theme?r.dataset.theme==='dark':matchMedia('(prefers-color-scheme: dark)').matches;r.dataset.theme=dark?'light':'dark'};
+
+/* seg chung: chỉ đổi trạng thái nút */
+document.querySelectorAll('[data-seg]').forEach(seg=>seg.addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  seg.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));
+  seg.dispatchEvent(new CustomEvent('pick',{detail:b.dataset.v}));
+}));
+
+/* ---------- dữ liệu mẫu ---------- */
+const ORDERS=[
+ {id:'113-4829175-2038641',shop:'HV US',mk:'US',t:'06/10 10:02',st:'SHIPPED',ch:'FBA',q:2,tot:57.98,push:'PUSHED',pk:'#284519'},
+ {id:'113-7720461-5513822',shop:'HV US',mk:'US',t:'06/10 09:57',st:'UNSHIPPED',ch:'FBM',q:1,tot:34.99,push:'PUSHED',pk:'#284511'},
+ {id:'114-0938172-6620419',shop:'HV US',mk:'US',t:'06/10 09:51',st:'SHIPPED',ch:'FBA',q:3,tot:89.97,push:'WAITING_MAP',why:'SKU HV-COLL-COMBO3 chưa map'},
+ {id:'113-5502918-0047723',shop:'HV US',mk:'US',t:'06/10 09:44',st:'PENDING',ch:'FBA',q:1,tot:0,push:'SKIP',why:'PENDING — không đẩy theo ánh xạ'},
+ {id:'702-3381045-9921407',shop:'HV Canada',mk:'CA',t:'06/10 08:31',st:'SHIPPED',ch:'FBA',q:1,tot:45.99,push:'FAILED',why:'Pancake 422: warehouse_id không tồn tại'},
+ {id:'113-9917204-3318850',shop:'HV US',mk:'US',t:'06/10 08:20',st:'CANCELLED',ch:'FBM',q:1,tot:24.99,push:'PUSHED',pk:'#284377',note:'Đã huỷ trên Pancake'},
+ {id:'701-2207719-4410836',shop:'HV Mexico',mk:'MX',t:'06/10 07:58',st:'SHIPPED',ch:'FBA',q:2,tot:1198.00,push:'PUSHED',pk:'#284360',cur:'MXN'},
+ {id:'113-6604183-7729105',shop:'HV US',mk:'US',t:'06/10 07:41',st:'PARTIALLY_SHIPPED',ch:'FBM',q:4,tot:119.96,push:'PUSHED',pk:'#284352'},
+ {id:'114-2273390-1186624',shop:'HV US',mk:'US',t:'06/10 07:12',st:'SHIPPED',ch:'FBA',q:1,tot:29.99,push:'FAILED',why:'DLQ — Pancake 503 sau 5 lần thử'},
+ {id:'113-1189026-8834017',shop:'HV US',mk:'US',t:'06/10 06:55',st:'UNSHIPPED',ch:'FBM',q:1,tot:39.99,push:'DRY_RUN',why:'Tuyến đang chạy thử'},
+ {id:'114-8803315-2290758',shop:'HV US',mk:'US',t:'06/10 06:31',st:'SHIPPED',ch:'FBA',q:2,tot:59.98,push:'PUSHED',pk:'#284301'},
+ {id:'113-3348102-5506631',shop:'HV US',mk:'US',t:'06/10 06:02',st:'UNFULFILLABLE',ch:'FBA',q:1,tot:19.99,push:'SKIP',why:'UNFULFILLABLE — không đẩy'},
+];
+const PUSH_LABEL={PUSHED:['ok','Đã đẩy'],WAITING_MAP:['warn','Chờ map'],FAILED:['bad','Lỗi'],SKIP:['','Không đẩy'],DRY_RUN:['info','Chạy thử']};
+function pushCell(o){const[c,l]=PUSH_LABEL[o.push];return `<span class="st ${c}">${l}${o.pk?' '+o.pk:''}</span>`+(o.why?`<span class="sub">${o.why}</span>`:'')}
+let orderFilter='';
+function renderOrders(){
+  const rows=ORDERS.filter(o=>!orderFilter||o.push===orderFilter);
+  $('orderTable').tBodies[0].innerHTML=rows.map(o=>`<tr class="click" data-id="${o.id}"><td class="l mono">${o.id}</td><td class="l">${o.shop}<span class="sub">${o.mk}</span></td><td class="l">${o.t}</td><td class="l mono">${o.st}</td><td class="c">${o.ch}</td><td>${o.q}</td><td>${fmt(o.tot)}<span class="sub">${o.cur||'USD'}</span></td><td class="l">${pushCell(o)}</td></tr>`).join('')||'<tr><td colspan="8" class="c muted" style="padding:24px">Không có đơn</td></tr>';
+  $('orderTable').querySelectorAll('tbody tr.click').forEach(tr=>tr.onclick=()=>showOrder(tr.dataset.id));
+}
+$('pushSeg').addEventListener('pick',e=>{orderFilter=e.detail==='FAILED'?'FAILED':e.detail;renderOrders()});
+function showOrder(id){
+  const o=ORDERS.find(x=>x.id===id);
+  document.querySelectorAll('#orderTable tbody tr').forEach(tr=>tr.classList.toggle('sel',tr.dataset.id===id));
+  $('odTitle').textContent=o.id;
+  const[c,l]=PUSH_LABEL[o.push];$('odState').className='st '+c;$('odState').textContent=l+(o.pk?' '+o.pk:'');
+  $('odKv').innerHTML=`<dt>Shop</dt><dd>${o.shop} · ${o.mk}</dd><dt>Trạng thái Amazon</dt><dd class="mono">${o.st}</dd><dt>Kênh</dt><dd>${o.ch==='FBA'?'FBA (Amazon giao)':'FBM (tự giao)'}</dd><dt>Tạo lúc</dt><dd>${o.t}/2026 · cập nhật 10:09</dd><dt>Đơn Pancake</dt><dd>${o.pk?`<a onclick="say('Mở pos.pages.fm đơn ${o.pk}')">${o.pk}</a> · shop HV US`:(o.why||'—')}</dd>`;
+  const it=o.q>=3&&o.push==='WAITING_MAP'?[['HV-COLL-COMBO3','<span class="st warn">Chưa map</span>',1,89.97]]:[['HV-COLL-30-US','Collagen Marine 30 gói <span class="mono muted">COLL-30</span>',o.q,o.q?o.tot/o.q:0]];
+  $('odItems').tBodies[0].innerHTML=it.map(r=>`<tr><td class="l mono">${r[0]}</td><td class="l">${r[1]}</td><td>${r[2]}</td><td>${fmt(r[3])}</td><td>${fmt(r[2]*r[3])}</td></tr>`).join('');
+  const tax=+(o.tot*0.0725).toFixed(2);
+  $('odMoney').innerHTML=`<dt>Tiền hàng</dt><dd>${fmt(o.tot)||'— (PENDING chưa có giá)'}</dd><dt>Phí ship</dt><dd>0,00</dd><dt>Khuyến mãi</dt><dd>${o.q>1?'−3,00':'0,00'}</dd><dt>Thuế (Amazon thu hộ)</dt><dd>${fmt(tax)}</dd><dt>Tiền tệ</dt><dd>${o.cur||'USD'}</dd>`;
+  $('odTimeline').innerHTML=[
+    ['10:09','Amazon: '+(o.st==='SHIPPED'?'UNSHIPPED → SHIPPED':o.st)+' <span class="muted">· system:cron</span>'],
+    o.pk?['10:10','Pancake: cập nhật trạng thái "Đã gửi hàng" '+o.pk+' <span class="muted">· system:queue</span>']:['10:10',(o.why||'')+' <span class="muted">· system:queue</span>'],
+    ['09:31','Pancake: tạo đơn '+(o.pk||'')+' (custom_id = mã đơn Amazon)'],
+    [o.t.slice(6),'Amazon: đơn mới '+'<span class="muted">· searchOrders · 01J9Z…6H1A</span>'],
+  ].map(r=>`<li><span class="mono muted">${r[0]}</span><span>${r[1]}</span></li>`).join('');
+  payloadMode='pk';document.querySelectorAll('#payloadSeg button').forEach((b,i)=>b.setAttribute('aria-pressed',i===0));
+  showPayload(o);
+}
+let payloadMode='pk';
+function showPayload(o){
+  o=o||ORDERS.find(x=>x.id===$('odTitle').textContent);
+  const pk={custom_id:o.id,warehouse_id:'wh_amz_fba_us',bill_full_name:'Amazon Customer US',bill_phone_number:'0900000101',
+    shipping_address:{full_name:'Amazon Customer US',phone_number:'0900000101',address:'Kho FBA — 12 Duy Tân',province_id:'101',district_id:'10105',commune_id:'1010509'},
+    items:[{variation_id:'7c1e…a90',product_id:'51d0…3f2',quantity:o.q,discount_each_product:o.q>1?1.5:0}],
+    shipping_fee:0,total_discount:0,order_sources:['amazon'],tags:['Amazon','AMZ-'+o.mk,o.ch],note:`Amazon ${o.id} · ${o.mk} · ${o.ch}`};
+  const amz={orderId:o.id,marketplaceId:'ATVPDKIKX0DER',createdTime:'2026-10-06T03:02:11Z',lastUpdatedTime:'2026-10-06T03:09:40Z',
+    fulfillment:{fulfillmentStatus:o.st,fulfilledBy:o.ch==='FBA'?'AMAZON':'MERCHANT'},
+    orderItems:[{orderItemId:'58210394117722',product:{sellerSku:'HV-COLL-30-US',asin:'B0CXK29QFJ'},quantityOrdered:o.q,unitPrice:{amount:String((o.tot/o.q||0).toFixed(2)),currencyCode:o.cur||'USD'}}],
+    proceeds:{'…':'…'},'…':'rút gọn'};
+  $('odPayload').textContent=JSON.stringify(payloadMode==='pk'?pk:amz,null,2);
+}
+$('payloadSeg').addEventListener('pick',e=>{payloadMode=e.detail;showPayload()});
+function skipOrder(){const r=prompt('Lý do bỏ qua (bắt buộc, ghi vào nhật ký):');if(r)say('Đã chuyển SKIPPED. Audit push.skip, lý do: "'+r+'"')}
+
+/* ---------- mapping ---------- */
+const MAPS=[
+ {sku:'HV-COLL-COMBO3',asin:'B0D1QWE7RT',fn:'X003K7P2LM',name:'Marine Collagen Peptides 30 sachets — Pack of 3',ch:'FBA',mk:'US',st:'none',wait:9},
+ {sku:'HV-OMEGA-90',asin:'B0C9ZL4K2P',fn:'X003J1Q8ZD',name:'Omega-3 Fish Oil 1200mg, 90 softgels',ch:'FBA',mk:'US',st:'none',wait:7},
+ {sku:'HV-VITC-60-NEW',asin:'B0DFT2MN81',fn:'',name:'Vitamin C 1000mg with Zinc, 60 tablets',ch:'FBM',mk:'US',st:'none',wait:5},
+ {sku:'hv-biotin-120',asin:'B0BX8R3VKA',fn:'X002ZQ0P7H',name:'Biotin 10000mcg Hair Skin Nails, 120 caps',ch:'FBA',mk:'US',st:'none',wait:3},
+ {sku:'HV-GIFT-BOX',asin:'B0CFJ1H7DD',fn:'',name:'Gift box (free with purchase)',ch:'FBM',mk:'US',st:'none',wait:2},
+ {sku:'HV-COLL-30-US',asin:'B0CXK29QFJ',fn:'X003F9K1AB',name:'Marine Collagen Peptides 30 sachets',ch:'FBA',mk:'US',st:'done',pk:'Collagen Marine 30 gói',code:'COLL-30',how:'Mã mẫu mã',wait:0},
+ {sku:'HV-COLL-60-US',asin:'B0CXK3B7WQ',fn:'X003F9K1AC',name:'Marine Collagen Peptides 60 sachets',ch:'FBA',mk:'US',st:'review',pk:'Collagen Marine 60 gói',code:'COLL-60',how:'Barcode',wait:0},
+ {sku:'HV-ZINC-100',asin:'B0B5HT2RQ9',fn:'X002R1M8KK',name:'Zinc Picolinate 50mg, 100 caps',ch:'FBA',mk:'US',st:'review',pk:'Kẽm Picolinate 100 viên',code:'ZINC-100',how:'Mã mẫu mã',wait:0},
+ {sku:'HV-INSERT-CARD',asin:'',fn:'',name:'Thank-you insert card',ch:'FBM',mk:'US',st:'ignored',how:'Bỏ qua — không phải hàng bán',wait:0},
+];
+let mapFilter='none';
+function renderMaps(){
+  $('mapTable').tBodies[0].innerHTML=MAPS.filter(m=>m.st===mapFilter).map((m,i)=>`<tr>
+    <td class="l mono">${m.sku}</td><td class="l mono">${m.asin||''}<span class="sub">${m.fn||''}</span></td><td class="l">${m.name}</td><td class="c">${m.ch}</td><td class="l">${m.mk}</td>
+    <td class="l">${m.pk?m.pk+'<span class="sub mono">'+m.code+'</span>':'<span class="st warn">Chưa map</span>'}</td>
+    <td class="l">${m.how||''}</td><td>${m.wait||''}</td>
+    <td>${m.st==='review'?'<button class="btn small" onclick="say(\'Duyệt: status=active, audit map.approve\')">Duyệt</button> ':''}<button class="btn small${m.st==='none'?' primary':''}" onclick="openMap('${m.sku}')">${m.st==='none'?'Map':'Sửa'}</button></td></tr>`).join('')
+    ||'<tr><td colspan="9" class="c muted" style="padding:24px">Không có SKU</td></tr>';
+}
+$('mapSeg').addEventListener('pick',e=>{mapFilter=e.detail;renderMaps()});
+function openMap(sku){const m=MAPS.find(x=>x.sku===sku);$('mmSku').textContent=sku;$('mmInfo').textContent=`${m.asin||'—'} · ${m.name} · ${m.ch} · ${m.mk}`+(m.wait?` · ${m.wait} đơn đang chờ`:'');openModal('mapModal')}
+$('mmType').addEventListener('pick',e=>{
+  $('mmLines').innerHTML=e.detail==='combo'
+   ?`<tr><td class="l">Collagen Marine 30 gói</td><td class="l mono">COLL-30</td><td class="l mono">8936012345671</td><td>590.000</td><td>1.240</td><td><input value="3" style="width:56px;text-align:right" class="mono"></td><td><button class="btn small">Bỏ</button></td></tr>
+     <tr><td class="l">Túi quà HV</td><td class="l mono">BAG-HV</td><td class="l mono">8936012349990</td><td>0</td><td>8.400</td><td><input value="1" style="width:56px;text-align:right" class="mono"></td><td><button class="btn small">Bỏ</button></td></tr>
+     <tr><td colspan="7" class="l"><button class="btn small">+ Thêm mẫu mã vào combo</button></td></tr>`
+   :`<tr><td class="l">Collagen Marine 30 gói</td><td class="l mono">COLL-30</td><td class="l mono">8936012345671</td><td>590.000</td><td>1.240</td><td><input value="1" style="width:56px;text-align:right" class="mono"></td><td><button class="btn small">Bỏ</button></td></tr>`;
+});
+function saveMap(){closeModal('mapModal');say('Đã lưu mapping. 9 đơn đang "Chờ map" của SKU này được xếp lại vào hàng đợi đẩy.')}
+function ignoreSku(){const r=prompt('Lý do bỏ qua SKU (VD: quà tặng, không quản lý trên Pancake):');if(r){closeModal('mapModal');say('SKU chuyển "Bỏ qua". Đơn chứa SKU này vẫn đẩy, dòng này không đưa vào items và ghi vào note.')}}
+function autoMatch(){$('autoMatchMsg').hidden=false}
+
+/* ---------- dữ liệu Amazon ---------- */
+const AMZ={
+ listing:{stamp:'Đồng bộ 06:05 hôm nay · Reports GET_MERCHANT_LISTINGS_ALL_DATA',html:`<table><thead><tr><th class="l">SKU</th><th class="l">ASIN</th><th class="l">Tên</th><th class="c">Kênh</th><th>Giá (USD)</th><th class="l">Trạng thái</th><th class="l">Pancake</th></tr></thead><tbody>
+  <tr><td class="l mono">HV-COLL-30-US</td><td class="l mono">B0CXK29QFJ</td><td class="l">Marine Collagen Peptides 30 sachets</td><td class="c">FBA</td><td>29,99</td><td class="l"><span class="st ok">Active</span></td><td class="l mono">COLL-30</td></tr>
+  <tr><td class="l mono">HV-COLL-60-US</td><td class="l mono">B0CXK3B7WQ</td><td class="l">Marine Collagen Peptides 60 sachets</td><td class="c">FBA</td><td>49,99</td><td class="l"><span class="st ok">Active</span></td><td class="l"><span class="st warn">Chờ duyệt</span></td></tr>
+  <tr><td class="l mono">HV-OMEGA-90</td><td class="l mono">B0C9ZL4K2P</td><td class="l">Omega-3 Fish Oil 1200mg, 90 softgels</td><td class="c">FBA</td><td>24,99</td><td class="l"><span class="st ok">Active</span></td><td class="l"><span class="st warn">Chưa map</span></td></tr>
+  <tr><td class="l mono">HV-VITC-60</td><td class="l mono">B0B1RT6Y2C</td><td class="l">Vitamin C 1000mg, 60 tablets</td><td class="c">FBM</td><td>19,99</td><td class="l"><span class="st">Inactive</span></td><td class="l mono">VITC-60</td></tr>
+  </tbody></table><div class="devnote"><b>Dev:</b> <code>hv_amz_listing</code>. Cả danh sách: Reports API 2021-06-30 (createReport → poll getReport → getReportDocument, gzip → DecompressionStream → TSV). Làm mới 1 SKU: Listings Items 2021-08-01 <code>getListingsItem</code>. Tên/ảnh chuẩn: Catalog Items 2022-04-01 (chỉ khi thiếu).</div>`},
+ inv:{stamp:'Đồng bộ 10:00 · FBA Inventory v1 getInventorySummaries',html:`<table><thead><tr><th class="l">SKU</th><th class="l">FNSKU</th><th>Sẵn bán</th><th>Đang nhập kho</th><th>Giữ chỗ</th><th>Hỏng</th><th>Bán TB/ngày (30 ngày)</th><th class="l">Đủ bán</th></tr></thead><tbody>
+  <tr><td class="l mono">HV-COLL-30-US</td><td class="l mono">X003F9K1AB</td><td>1.284</td><td>600</td><td>37</td><td>4</td><td>58,3</td><td class="l"><span class="st ok">22 ngày</span></td></tr>
+  <tr><td class="l mono">HV-COLL-60-US</td><td class="l mono">X003F9K1AC</td><td>212</td><td></td><td>9</td><td></td><td>21,7</td><td class="l"><span class="st warn">10 ngày</span></td></tr>
+  <tr><td class="l mono">HV-OMEGA-90</td><td class="l mono">X003J1Q8ZD</td><td>38</td><td></td><td>2</td><td>1</td><td>14,2</td><td class="l"><span class="st bad">3 ngày</span></td></tr>
+  </tbody></table><div class="devnote"><b>Dev:</b> <code>hv_amz_inventory</code> — snapshot mới nhất / SKU (lịch sử giữ ở R2). "Đủ bán" = sẵn bán ÷ bán TB/ngày 30 ngày (từ <code>hv_amz_order_item</code>), đỏ &lt; 7 ngày, vàng &lt; 14 ngày (ngưỡng chỉnh ở Cấu hình). Dataset tuỳ chọn — cần role Amazon Fulfillment.</div>`},
+ fin:{stamp:'Đồng bộ 06:40 · Finances 2024-06-19 listTransactions',html:`<table><thead><tr><th class="l">Mã đơn</th><th class="l">Ngày ghi nhận</th><th>Tiền hàng</th><th>Phí bán</th><th>Phí FBA</th><th>Khuyến mãi</th><th>Hoàn</th><th>Thực nhận (USD)</th></tr></thead><tbody>
+  <tr><td class="l mono">113-4829175-2038641</td><td class="l">06/10</td><td>57,98</td><td>−8,70</td><td>−7,46</td><td>−3,00</td><td></td><td><b>38,82</b></td></tr>
+  <tr><td class="l mono">113-7720461-5513822</td><td class="l">06/10</td><td>34,99</td><td>−5,25</td><td></td><td></td><td></td><td><b>29,74</b></td></tr>
+  <tr><td class="l mono">112-9034471-1182305</td><td class="l">05/10</td><td></td><td>1,05</td><td></td><td></td><td>−24,99</td><td><b>−23,94</b></td></tr>
+  </tbody></table><div class="devnote"><b>Dev:</b> <code>hv_amz_finance_txn</code>, tiền lưu số nguyên đơn vị nhỏ nhất (<code>amount_minor</code>) + currency, <code>breakdown_json</code> giữ nguyên chi tiết. Chỉ đọc — không đẩy Pancake. Dataset tuỳ chọn — cần role Finance and Accounting.</div>`},
+ ret:{stamp:'Chưa bật cho shop này',html:`<div class="empty" style="padding:40px 16px;text-align:center;color:var(--text-2)">Hoàn hàng chưa bật cho <b>HV Canada</b>. Bật ở <a onclick="go('config','amazon')">Cấu hình → Kết nối Amazon</a> (cần role Amazon Fulfillment).</div><div class="devnote"><b>Dev:</b> <code>hv_amz_return</code> từ Reports <code>GET_FBA_FULFILLMENT_CUSTOMER_RETURNS_DATA</code> (FBA) và <code>GET_FLAT_FILE_RETURNS_DATA_BY_RETURN_DATE</code> (FBM). Có ánh xạ "Hoàn hàng" ở bước 4 Pancake thì sinh outbox reason=update để cập nhật đơn Pancake.</div>`},
+};
+function amzSub(v){document.querySelectorAll('#amzSub button').forEach(b=>b.setAttribute('aria-selected',b.dataset.v===v));$('amzBody').innerHTML=AMZ[v].html;$('amzStamp').textContent=AMZ[v].stamp}
+document.querySelectorAll('#amzSub button').forEach(b=>b.onclick=()=>amzSub(b.dataset.v));
+
+/* ---------- hàng đợi ---------- */
+const Q={
+ FAILED_DATA:[['702-3381045-9921407','HV Canada','Pancake 422: warehouse_id không tồn tại (kho đã xoá trên Pancake)',1,'08:31'],['113-2209174-6610392','HV US','Pancake 400: variation_id 7c1e…a90 đã ngừng bán',1,'09:12'],['114-5530182-0027716','HV US','Payload: tổng tiền âm sau khuyến mãi (−1,20)',1,'09:40']],
+ WAITING_MAP:[['114-0938172-6620419','HV US','SKU HV-COLL-COMBO3 chưa map',0,'09:51'],['113-8124409-3376150','HV US','SKU HV-OMEGA-90 chưa map',0,'09:33']],
+ WAITING_CFG:[['701-9930127-5508214','HV Mexico','Trạng thái PARTIALLY_SHIPPED · FBM chưa có ánh xạ',0,'08:05']],
+ DLQ:[['114-2273390-1186624','HV US','Pancake 503 Service Unavailable × 5',5,'07:52']],
+ RETRY:[['113-4410290-7781635','HV US','Pancake 429 — thử lại lúc 10:17',2,'10:15']],
+};
+function renderQ(k){$('qTable').tBodies[0].innerHTML=(Q[k]||[]).map(r=>`<tr><td class="c"><input type="checkbox"></td><td class="l mono"><a onclick="go('orders');showOrder('${r[0]}')">${r[0]}</a></td><td class="l">${r[1]}</td><td class="l">${r[2]}</td><td>${r[3]||''}</td><td class="l">${r[4]}</td><td class="l"><a class="mono" onclick="filterLog('${r[0]}')">01J9Z…${r[0].slice(-4)}</a></td><td>${k==='WAITING_MAP'?'<button class="btn small" onclick="go(\'mapping\')">Map</button>':k==='WAITING_CFG'?'<button class="btn small" onclick="go(\'config\',\'pancake\');pkStep(4)">Cấu hình</button>':'<button class="btn small" onclick="say(\'Đẩy lại đơn '+r[0]+'\')">Đẩy lại</button>'}</td></tr>`).join('')}
+$('qSeg').addEventListener('pick',e=>renderQ(e.detail));
+
+/* ---------- nhật ký ---------- */
+const LOGS=[
+ ['10:15:02','system:queue','pancake.update','order 113-4829175-2038641','ok',412,'PUT /orders/284519 status=2 (Đã gửi hàng)','01J9Z8F7K2Q'],
+ ['10:13:44','system:cron','order.upsert','order 113-4829175-2038641','ok',3,'fulfillment_status UNSHIPPED → SHIPPED','01J9Z8F7K2Q'],
+ ['10:13:41','system:cron','amz.search','shop HV US','ok',1830,'searchOrders 2 trang · 127 đơn · RequestId 4f1c9a0e-…','01J9Z8F7K2Q'],
+ ['10:13:02','system:cron','amz.search','shop HV Mexico','warn',96012,'429 QuotaExceeded × 2, backoff 30s/60s rồi OK','01J9Z8F7K2R'],
+ ['09:58:10','DungNT','config.pancake.test','pk_shop HV US','ok',820,'Kiểm tra kết nối Pancake: 4 kho, 23 nguồn, 61 thẻ','01J9Z7Q1A0C'],
+ ['09:47:33','vh.amazon01','map.update','sku HV-COLL-30-US','ok',41,'→ COLL-30 × 1 (manual)','01J9Z71XW3B'],
+ ['09:12:05','system:queue','pancake.create','order 113-2209174-6610392','error',388,'400 variation_id 7c1e…a90 đã ngừng bán','01J9Z5D2M8E'],
+ ['08:42:10','system:cron','token.refresh','shop HV Canada','error',611,'invalid_grant — shop chuyển auth_error, đã báo Lark','01J9Y3P0AB1'],
+ ['08:02:51','KT. Hạnh','user.login','user KT. Hạnh','ok',95,'Đăng nhập · IP 14.232.xx.xx','01J9Y1K4R7F'],
+];
+function renderLogs(q){q=(q||'').toLowerCase();$('logTable').tBodies[0].innerHTML=LOGS.filter(r=>!q||r.join(' ').toLowerCase().includes(q)).map(r=>`<tr><td class="l mono">${r[0]}</td><td class="l">${r[1]}</td><td class="l mono">${r[2]}</td><td class="l">${r[3]}</td><td class="l"><span class="st ${r[4]==='ok'?'ok':r[4]==='warn'?'warn':'bad'}">${r[4]==='ok'?'OK':r[4]==='warn'?'Cảnh báo':'Lỗi'}</span></td><td>${r[5].toLocaleString('vi-VN')}</td><td class="l">${r[6]}</td><td class="l"><a class="mono" onclick="filterLog('${r[7]}')">${r[7]}</a></td></tr>`).join('')}
+function filterLog(q){go('logs');$('logSearch').value=q.length>12?'01J9Z8F7K2Q':q;renderLogs($('logSearch').value)}
+$('logSearch').oninput=e=>renderLogs(e.target.value);
+
+/* ---------- cấu hình ---------- */
+function cfgSub(v){document.querySelectorAll('#cfgSub button').forEach(b=>b.setAttribute('aria-selected',b.dataset.v===v));['amazon','pancake','users','alerts'].forEach(k=>$('cfg-'+k).hidden=k!==v)}
+document.querySelectorAll('#cfgSub button').forEach(b=>b.onclick=()=>cfgSub(b.dataset.v));
+const SHOPS={us:['HV US','ok','Đang chạy',false],ca:['HV Canada','bad','Lỗi xác thực',true],mx:['HV Mexico','ok','Đang chạy',false],new:['Shop mới','','Nháp — chưa test',false]};
+function openShop(k){const s=SHOPS[k];$('shopFormTitle').textContent=s[0];$('shopFormState').className='st '+s[1];$('shopFormState').textContent=s[2];$('shopAuthErr').hidden=!s[3];$('fShopName').value=k==='new'?'':s[0];$('testBox').hidden=true;
+  document.querySelectorAll('#shopTable tbody tr').forEach((tr,i)=>tr.classList.toggle('sel',['us','ca','mx'][i]===k))}
+$('mkChips').onclick=e=>{const c=e.target.closest('.chip');if(!c)return;c.classList.toggle('on');
+  const regs=[...new Set([...document.querySelectorAll('#mkChips .chip.on')].map(x=>x.dataset.r))];
+  $('regionHint').innerHTML=regs.length>1?'<span style="color:var(--bad)">Các marketplace phải cùng region — đang chọn '+regs.join(' + ')+'. Tách thành 2 shop.</span>':regs.length?`Region: <b>${regs[0]}</b> → <code>sellingpartnerapi-${regs[0]}.amazon.com</code> (tự suy ra)`:'Chọn ít nhất 1 marketplace'};
+function runTest(){
+  const bad=$('shopAuthErr').hidden===false;
+  const steps=bad?[['bad','Lấy access token (LWA)','invalid_grant — RefreshToken sai hoặc đã bị thu hồi. Authorize lại app rồi dán RefreshToken mới.','—']]
+   :[['ok','Lấy access token (LWA)','OK · hết hạn 11:15','—'],
+     ['ok','Marketplace của shop (Sellers getMarketplaceParticipations)','US ✓ khớp MarketplaceIds','rid 9b2e…41f0'],
+     ['ok','Đơn hàng (searchOrders 2026-01-01)','OK · role Inventory and Order Tracking','rid 4f1c…9a0e'],
+     ['ok','Sản phẩm (Reports GET_MERCHANT_LISTINGS_ALL_DATA)','OK · role Product Listing','rid 77d0…2c11'],
+     ['ok','Tồn kho FBA','OK · role Amazon Fulfillment','rid 1a9f…e7b2'],
+     ['warn','Tài chính (Finances 2024-06-19)','403 — app thiếu role Finance and Accounting. Thêm role rồi authorize lại để có RefreshToken mới.','rid c03d…5518']];
+  $('testLog').innerHTML=steps.map(s=>`<li><span class="st ${s[0]}"></span><span><b>${s[1]}</b><span class="sub">${s[2]}</span></span><span class="mono">${s[3]}</span></li>`).join('');
+  $('testBox').hidden=false;
+}
+/* Pancake stepper */
+function pkStep(n){
+  document.querySelectorAll('#pkStepper .step').forEach(s=>{const i=+s.dataset.s;s.className='step'+(i<n?' done':i===n?' current':'')});
+  document.querySelectorAll('#pkStepper .step-line').forEach((l,i)=>l.className='step-line'+(i+1<n?' done':''));
+  document.querySelectorAll('.pk-step').forEach(c=>c.hidden=+c.dataset.s!==n);
+}
+document.querySelectorAll('#pkStepper .step').forEach(s=>s.onclick=()=>pkStep(+s.dataset.s));
+const PK_ST=['— Không đẩy —','Mới (0)','Đã xác nhận (1)','Đã gửi hàng (2)','Đã nhận (3)','Đang hoàn (4)','Đã hoàn (5)','Đã huỷ (6)'];
+const ACTS=['Không đẩy','Tạo đơn','Tạo hoặc cập nhật','Chỉ cập nhật nếu đã có','Huỷ đơn đã đẩy'];
+const SMAP=[
+ ['PENDING_AVAILABILITY','FBA/FBM',0,0,14],['PENDING','FBA/FBM',0,0,388],['UNSHIPPED','FBM',1,1,612],['PARTIALLY_SHIPPED','FBM',2,2,41],
+ ['PARTIALLY_SHIPPED','FBA',null,null,6],['SHIPPED','FBA',2,3,9214],['SHIPPED','FBM',2,3,1530],['CANCELLED','FBA/FBM',4,7,203],['UNFULFILLABLE','FBA/FBM',0,0,3],['Hoàn hàng (D3)','FBA/FBM',3,5,97]];
+$('statusMap').tBodies[0].innerHTML=SMAP.map(r=>`<tr${r[2]===null?' style="background:var(--warn-bg)"':''}><td class="l mono">${r[0]}</td><td class="c">${r[1]}</td>
+ <td class="l"><select class="btn small">${r[2]===null?'<option>— Chưa cấu hình —</option>':''}${ACTS.map((a,i)=>`<option${i===r[2]?' selected':''}>${a}</option>`).join('')}</select></td>
+ <td class="l"><select class="btn small">${r[3]===null?'<option>— chọn —</option>':''}${PK_ST.map((a,i)=>`<option${i===r[3]?' selected':''}>${a}</option>`).join('')}</select>${r[2]===null?'<span class="sub" style="color:var(--warn-ink)">Chưa cấu hình — 6 đơn đang chờ</span>':''}</td><td>${r[4].toLocaleString('vi-VN')}</td></tr>`).join('');
+
+/* ---------- modal ---------- */
+function openModal(id){$(id).hidden=false}
+function closeModal(id){$(id).hidden=true}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.modal-bg').forEach(m=>m.hidden=true)});
+
+/* ---------- khởi động ---------- */
+renderOrders();showOrder(ORDERS[0].id);renderMaps();amzSub('listing');renderQ('FAILED_DATA');renderLogs();openShop('us');
+const [t,s]=(location.hash.slice(1)||'overview').split('/');go(TAB_NAMES[t]?t:'overview',s);
+</script>
+</body>
+</html>
